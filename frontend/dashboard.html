@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Casa Monarca</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="logo-seal">CM</div>
+      <h1>Casa Monarca</h1>
+    </div>
+    <nav class="header-nav">
+      <span id="user-name" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
+      <a href="verificar.html" target="_blank">Portal público</a>
+      <a href="#" id="btn-logout">Cerrar sesión</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active" data-section="overview">📊 Resumen</a></li>
+        <li><a href="#" data-section="documentos">📄 Documentos</a></li>
+        <li><a href="#" data-section="usuarios">👥 Usuarios</a></li>
+        <li><a href="#" data-section="bitacora">🕓 Bitácora</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Overview -->
+      <section id="section-overview">
+        <h2 style="margin-bottom:1.5rem; font-size:1.3rem; color:var(--primary)">Resumen del sistema</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-label">Total documentos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="stat-emitidos">—</div>
+            <div class="stat-label">Emitidos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value" id="stat-borradores">—</div>
+            <div class="stat-label">Borradores</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-value" id="stat-revocados">—</div>
+            <div class="stat-label">Revocados</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Acciones rápidas</h3>
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <a href="#" class="btn btn-primary" data-action="new-doc">+ Emitir certificado</a>
+            <a href="verificar.html" target="_blank" class="btn btn-outline">🔍 Portal de verificación</a>
+            <a href="#" class="btn btn-outline" data-section="bitacora">🕓 Ver bitácora</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documentos -->
+      <section id="section-documentos" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.3rem; color:var(--primary)">Documentos</h2>
+          <button class="btn btn-primary" id="btn-new-doc">+ Nuevo documento</button>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div style="display:flex; gap:0.75rem; align-items:center;">
+            <input type="text" class="form-control" id="filter-docs" placeholder="Buscar por título o folio..." style="max-width:300px;" />
+            <select class="form-control" id="filter-estado" style="max-width:160px;">
+              <option value="">Todos los estados</option>
+              <option value="emitido">Emitido</option>
+              <option value="borrador">Borrador</option>
+              <option value="revocado">Revocado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Firmado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="docs-tbody">
+              <!-- Mock data: en producción viene del backend -->
+              <tr>
+                <td><code style="font-size:0.8rem;">MNR-2024-001</code></td>
+                <td>Certificado de Participación — Taller Mariposa 2024</td>
+                <td><span class="badge badge-emitido">Emitido</span></td>
+                <td>✅</td>
+                <td>2024-03-15</td>
+                <td>
+                  <a href="verificar.html?folio=MNR-2024-001" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Ver</a>
+                  <button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;" onclick="revocarDoc(1)">Revocar</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code style="font-size:0.8rem;">MNR-2024-002</code></td>
+                <td>Constancia de Voluntariado — Temporada 2023</td>
+                <td><span class="badge badge-borrador">Borrador</span></td>
+                <td>—</td>
+                <td>2024-03-18</td>
+                <td>
+                  <button class="btn btn-accent" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Emitir</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code style="font-size:0.8rem;">MNR-2023-089</code></td>
+                <td>Diploma Programa de Reinserción Social</td>
+                <td><span class="badge badge-revocado">Revocado</span></td>
+                <td>—</td>
+                <td>2023-11-02</td>
+                <td>
+                  <a href="verificar.html?folio=MNR-2023-089" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Ver</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Usuarios -->
+      <section id="section-usuarios" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-size:1.3rem; color:var(--primary)">Usuarios</h2>
+          <button class="btn btn-primary" id="btn-new-user">+ Nuevo usuario</button>
+        </div>
+
+        <div class="card table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Administrador Principal</td>
+                <td>admin@casamonarca.org</td>
+                <td>Admin</td>
+                <td><span class="badge badge-emitido">Activo</span></td>
+                <td><button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Desactivar</button></td>
+              </tr>
+              <tr>
+                <td>Operador Certificados</td>
+                <td>operador@casamonarca.org</td>
+                <td>Operador</td>
+                <td><span class="badge badge-emitido">Activo</span></td>
+                <td><button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Desactivar</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Bitácora -->
+      <section id="section-bitacora" style="display:none;">
+        <h2 style="font-size:1.3rem; color:var(--primary); margin-bottom:1.5rem;">Bitácora de auditoría</h2>
+
+        <div class="card" style="margin-bottom:1rem;">
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <select class="form-control" style="max-width:160px;">
+              <option>Todos los módulos</option>
+              <option>AUTH</option>
+              <option>DOCUMENTOS</option>
+              <option>USUARIOS</option>
+            </select>
+            <input type="date" class="form-control" style="max-width:180px;" />
+          </div>
+        </div>
+
+        <div class="card">
+          <ul class="timeline">
+            <li class="timeline-item accion-revocar">
+              <div class="timeline-time">Hoy 14:32 · 192.168.1.1</div>
+              <div class="timeline-text"><strong>admin@casamonarca.org</strong> revocó el documento <code>MNR-2023-089</code> — módulo DOCUMENTOS</div>
+            </li>
+            <li class="timeline-item">
+              <div class="timeline-time">Hoy 13:15 · 192.168.1.1</div>
+              <div class="timeline-text"><strong>operador@casamonarca.org</strong> emitió el documento <code>MNR-2024-001</code> — módulo DOCUMENTOS</div>
+            </li>
+            <li class="timeline-item accion-login">
+              <div class="timeline-time">Hoy 09:01 · 10.0.0.5</div>
+              <div class="timeline-text"><strong>admin@casamonarca.org</strong> inició sesión — módulo AUTH</div>
+            </li>
+            <li class="timeline-item">
+              <div class="timeline-time">Ayer 17:45 · 192.168.1.2</div>
+              <div class="timeline-text"><strong>operador@casamonarca.org</strong> creó usuario <code>nuevo@casamonarca.org</code> — módulo USUARIOS</div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Navegación por secciones
+    const sections = ['overview', 'documentos', 'usuarios', 'bitacora'];
+
+    function showSection(name) {
+      sections.forEach(s => {
+        document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
+      });
+      document.querySelectorAll('.sidebar-menu a').forEach(a => {
+        a.classList.toggle('active', a.dataset.section === name);
+      });
+    }
+
+    document.querySelectorAll('[data-section]').forEach(el => {
+      el.addEventListener('click', (e) => { e.preventDefault(); showSection(el.dataset.section); });
+    });
+
+    // Stats mock
+    document.getElementById('stat-total').textContent = '3';
+    document.getElementById('stat-emitidos').textContent = '1';
+    document.getElementById('stat-borradores').textContent = '1';
+    document.getElementById('stat-revocados').textContent = '1';
+
+    function revocarDoc(id) {
+      if (confirm('¿Confirmas revocar este documento? Esta acción no se puede deshacer.')) {
+        alert('Documento revocado. (Conectar a /src/modules/documentos.php)');
+      }
+    }
+  </script>
+</body>
+</html>
