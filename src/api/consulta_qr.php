@@ -1,43 +1,68 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../modules/documentos.php';
 
 header('Content-Type: application/json');
 
-$folio = isset($_GET['folio']) ? trim((string) $_GET['folio']) : '';
-if ($folio === '') {
-    echo json_encode(['estatus' => 'no_encontrado']);
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode([
+        'status' => 'error',
+        'data' => [],
+        'message' => 'Metodo no permitido.',
+        'mensaje' => 'Metodo no permitido.',
+    ], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
-$pdo = getPdoConnection();
+$identificador = '';
+if (isset($_GET['token'])) {
+    $identificador = trim((string) $_GET['token']);
+} elseif (isset($_GET['folio'])) {
+    $identificador = trim((string) $_GET['folio']);
+} elseif (isset($_GET['id'])) {
+    $identificador = trim((string) $_GET['id']);
+}
 
-$sql = '
-    SELECT estado AS estatus
-    FROM documentos
-    WHERE id = :folio
-    LIMIT 1
-';
-$stmt = $pdo->prepare($sql);
-$stmt->execute(['folio' => (int) $folio]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$row || !isset($row['estatus'])) {
-    echo json_encode(['estatus' => 'no_encontrado']);
+if ($identificador === '') {
+    http_response_code(400);
+    echo json_encode([
+        'status' => 'error',
+        'data' => [],
+        'message' => 'Debe proporcionar un token, folio o id.',
+        'mensaje' => 'Debe proporcionar un token, folio o id.',
+    ], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
-$estatus = strtolower((string) $row['estatus']);
-if ($estatus === 'revocado') {
-    echo json_encode(['estatus' => 'revocado']);
-    exit();
-}
+try {
+    $resultado = evaluarAutenticidadPublica($identificador);
 
-if ($estatus === 'emitido' || $estatus === 'valido') {
-    echo json_encode(['estatus' => 'valido']);
-    exit();
-}
+    if (!$resultado['encontrado']) {
+        http_response_code(404);
+    }
 
-echo json_encode(['estatus' => 'no_encontrado']);
-exit();
+    echo json_encode([
+        'status' => 'success',
+        'data' => [
+            'encontrado' => (bool) $resultado['encontrado'],
+            'estado' => $resultado['estado'],
+            'firma_valida' => (bool) $resultado['firma_valida'],
+            'es_autentico' => (bool) $resultado['es_autentico'],
+            'folio' => $resultado['folio'],
+            'tipo_documento' => $resultado['tipo_documento'],
+            'fecha_emision' => $resultado['fecha_emision'],
+            'fecha_revocacion' => $resultado['fecha_revocacion'],
+            'motivo_revocacion' => $resultado['motivo_revocacion'],
+        ],
+    ], JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'data' => [],
+        'message' => 'No fue posible validar el documento.',
+        'mensaje' => 'No fue posible validar el documento.',
+    ], JSON_UNESCAPED_UNICODE);
+}

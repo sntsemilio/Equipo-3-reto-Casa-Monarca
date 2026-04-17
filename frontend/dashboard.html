@@ -3,274 +3,787 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Casa Monarca</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Casa Monarca | Panel de Gestión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-
-  <!-- Header -->
   <header class="header">
     <div class="header-brand">
       <div class="logo-seal">CM</div>
-      <h1>Casa Monarca</h1>
+      <div>
+        <p class="header-kicker">Casa Monarca</p>
+        <h1>Panel Institucional</h1>
+      </div>
     </div>
+
     <nav class="header-nav">
-      <span id="user-name" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
-      <a href="verificar.html" target="_blank">Portal público</a>
+      <span id="user-role-pill" class="role-pill">ROL</span>
+      <span id="user-name" class="header-user"></span>
+      <a href="verificar.php" target="_blank" rel="noopener">Portal público</a>
       <a href="#" id="btn-logout">Cerrar sesión</a>
     </nav>
   </header>
 
   <div class="layout">
-    <!-- Sidebar -->
-    <nav class="sidebar">
+    <aside class="sidebar">
       <ul class="sidebar-menu">
-        <li><a href="#" class="active" data-section="overview">📊 Resumen</a></li>
-        <li><a href="#" data-section="documentos">📄 Documentos</a></li>
-        <li><a href="#" data-section="usuarios">👥 Usuarios</a></li>
-        <li><a href="#" data-section="bitacora">🕓 Bitácora</a></li>
+        <li><a class="active" href="#" data-section="overview">Resumen</a></li>
+        <li><a href="#" data-section="documentos">Documentos</a></li>
+        <li><a id="nav-usuarios" href="#" data-section="usuarios">Usuarios</a></li>
+        <li><a id="nav-bitacora" href="#" data-section="bitacora">Bitácora</a></li>
       </ul>
-    </nav>
+    </aside>
 
-    <!-- Main content -->
     <main class="main-content">
-
-      <!-- Overview -->
       <section id="section-overview">
-        <h2 style="margin-bottom:1.5rem; font-size:1.3rem; color:var(--primary)">Resumen del sistema</h2>
+        <h2 class="section-title">Resumen operativo</h2>
         <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">📄</div>
-            <div class="stat-value" id="stat-total">—</div>
-            <div class="stat-label">Total documentos</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value" id="stat-emitidos">—</div>
-            <div class="stat-label">Emitidos</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">📝</div>
-            <div class="stat-value" id="stat-borradores">—</div>
-            <div class="stat-label">Borradores</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">🚫</div>
-            <div class="stat-value" id="stat-revocados">—</div>
-            <div class="stat-label">Revocados</div>
-          </div>
+          <article class="stat-card">
+            <p class="stat-value" id="stat-total">0</p>
+            <p class="stat-label">Documentos totales</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-value" id="stat-emitidos">0</p>
+            <p class="stat-label">Emitidos</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-value" id="stat-borradores">0</p>
+            <p class="stat-label">Borradores</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-value" id="stat-revocados">0</p>
+            <p class="stat-label">Revocados</p>
+          </article>
         </div>
 
         <div class="card">
-          <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Acciones rápidas</h3>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <a href="#" class="btn btn-primary" data-action="new-doc">+ Emitir certificado</a>
-            <a href="verificar.html" target="_blank" class="btn btn-outline">🔍 Portal de verificación</a>
-            <a href="#" class="btn btn-outline" data-section="bitacora">🕓 Ver bitácora</a>
+          <h3 class="card-title">Operaciones rápidas</h3>
+          <p class="muted-text">Emite, consulta y revoca documentos con firma digital y trazabilidad de seguridad.</p>
+          <div class="quick-actions">
+            <button class="btn btn-primary" type="button" data-section="documentos">Ir a documentos</button>
+            <button id="btn-refresh-overview" class="btn btn-outline" type="button">Actualizar resumen</button>
+            <a class="btn btn-outline" href="verificar.php" target="_blank" rel="noopener">Validación pública</a>
           </div>
         </div>
       </section>
 
-      <!-- Documentos -->
-      <section id="section-documentos" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-          <h2 style="font-size:1.3rem; color:var(--primary)">Documentos</h2>
-          <button class="btn btn-primary" id="btn-new-doc">+ Nuevo documento</button>
+      <section id="section-documentos" class="hidden-section">
+        <div class="section-header">
+          <h2 class="section-title">Gestión documental</h2>
+          <button id="btn-refresh-docs" class="btn btn-outline" type="button">Actualizar</button>
         </div>
 
-        <div class="card" style="margin-bottom:1rem;">
-          <div style="display:flex; gap:0.75rem; align-items:center;">
-            <input type="text" class="form-control" id="filter-docs" placeholder="Buscar por título o folio..." style="max-width:300px;" />
-            <select class="form-control" id="filter-estado" style="max-width:160px;">
+        <div id="doc-form-card" class="card form-card">
+          <h3 id="doc-form-title" class="card-title">Nuevo borrador</h3>
+          <form id="doc-form" class="inline-form">
+            <input id="doc-edit-id" type="hidden" value="" />
+
+            <div class="form-field">
+              <label for="doc-title">Título</label>
+              <input id="doc-title" class="form-control" type="text" maxlength="255" required />
+            </div>
+
+            <div class="form-field">
+              <label for="doc-route">Ruta de archivo</label>
+              <input id="doc-route" class="form-control" type="text" maxlength="500" placeholder="/certificados/documento.pdf" required />
+            </div>
+
+            <div class="form-field">
+              <label for="doc-description">Descripción</label>
+              <input id="doc-description" class="form-control" type="text" maxlength="255" placeholder="Descripción breve del documento" />
+            </div>
+
+            <div class="form-field">
+              <label for="doc-hash">Hash SHA-256 (opcional)</label>
+              <input id="doc-hash" class="form-control" type="text" maxlength="64" placeholder="64 caracteres hexadecimales" />
+            </div>
+
+            <div class="form-field full-width">
+              <label for="doc-content">Contenido base para firma (opcional)</label>
+              <textarea id="doc-content" class="form-control" rows="4" placeholder="Texto usado para generar hash y firma al emitir"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button id="btn-save-doc" class="btn btn-primary" type="submit">Guardar borrador</button>
+              <button id="btn-cancel-edit" class="btn btn-outline" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card filters-card">
+          <div class="filters-row">
+            <input id="filter-docs" class="form-control" type="text" placeholder="Buscar por título o folio" />
+            <select id="filter-estado" class="form-control">
               <option value="">Todos los estados</option>
-              <option value="emitido">Emitido</option>
               <option value="borrador">Borrador</option>
+              <option value="emitido">Emitido</option>
               <option value="revocado">Revocado</option>
             </select>
+            <button id="btn-apply-filters" class="btn btn-outline" type="button">Aplicar filtros</button>
           </div>
         </div>
 
         <div class="card table-wrapper">
-          <table>
+          <table id="docs-table">
             <thead>
               <tr>
                 <th>Folio</th>
                 <th>Título</th>
                 <th>Estado</th>
-                <th>Firmado</th>
-                <th>Fecha</th>
+                <th>Firma</th>
+                <th>Actualización</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="docs-tbody">
-              <!-- Mock data: en producción viene del backend -->
-              <tr>
-                <td><code style="font-size:0.8rem;">MNR-2024-001</code></td>
-                <td>Certificado de Participación — Taller Mariposa 2024</td>
-                <td><span class="badge badge-emitido">Emitido</span></td>
-                <td>✅</td>
-                <td>2024-03-15</td>
-                <td>
-                  <a href="verificar.html?folio=MNR-2024-001" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Ver</a>
-                  <button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;" onclick="revocarDoc(1)">Revocar</button>
-                </td>
-              </tr>
-              <tr>
-                <td><code style="font-size:0.8rem;">MNR-2024-002</code></td>
-                <td>Constancia de Voluntariado — Temporada 2023</td>
-                <td><span class="badge badge-borrador">Borrador</span></td>
-                <td>—</td>
-                <td>2024-03-18</td>
-                <td>
-                  <button class="btn btn-accent" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Emitir</button>
-                </td>
-              </tr>
-              <tr>
-                <td><code style="font-size:0.8rem;">MNR-2023-089</code></td>
-                <td>Diploma Programa de Reinserción Social</td>
-                <td><span class="badge badge-revocado">Revocado</span></td>
-                <td>—</td>
-                <td>2023-11-02</td>
-                <td>
-                  <a href="verificar.html?folio=MNR-2023-089" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Ver</a>
-                </td>
+              <tr class="empty-row">
+                <td colspan="6">Sin documentos para mostrar.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- Usuarios -->
-      <section id="section-usuarios" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-          <h2 style="font-size:1.3rem; color:var(--primary)">Usuarios</h2>
-          <button class="btn btn-primary" id="btn-new-user">+ Nuevo usuario</button>
+      <section id="section-usuarios" class="hidden-section">
+        <div class="section-header">
+          <h2 class="section-title">Administración de usuarios</h2>
+          <button id="btn-refresh-users" class="btn btn-outline" type="button">Actualizar</button>
+        </div>
+
+        <div class="card form-card">
+          <h3 class="card-title">Registrar usuario interno</h3>
+          <form id="user-form" class="inline-form">
+            <div class="form-field">
+              <label for="user-name-input">Nombre</label>
+              <input id="user-name-input" class="form-control" type="text" maxlength="140" required />
+            </div>
+
+            <div class="form-field">
+              <label for="user-email-input">Correo</label>
+              <input id="user-email-input" class="form-control" type="email" maxlength="190" required />
+            </div>
+
+            <div class="form-field">
+              <label for="user-password-input">Contraseña</label>
+              <input id="user-password-input" class="form-control" type="password" minlength="8" required />
+            </div>
+
+            <div class="form-field">
+              <label for="user-role-input">Rol</label>
+              <select id="user-role-input" class="form-control" required>
+                <option value="consultor">Consultor</option>
+                <option value="emisor">Emisor</option>
+                <option value="administrador">Administrador</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button id="btn-create-user" class="btn btn-primary" type="submit">Registrar usuario</button>
+            </div>
+          </form>
         </div>
 
         <div class="card table-wrapper">
-          <table>
+          <table id="users-table">
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>Email</th>
+                <th>Correo</th>
                 <th>Rol</th>
                 <th>Estado</th>
+                <th>Último acceso</th>
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Administrador Principal</td>
-                <td>admin@casamonarca.org</td>
-                <td>Admin</td>
-                <td><span class="badge badge-emitido">Activo</span></td>
-                <td><button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Desactivar</button></td>
-              </tr>
-              <tr>
-                <td>Operador Certificados</td>
-                <td>operador@casamonarca.org</td>
-                <td>Operador</td>
-                <td><span class="badge badge-emitido">Activo</span></td>
-                <td><button class="btn btn-danger" style="padding:0.3rem 0.7rem; font-size:0.8rem;">Desactivar</button></td>
+            <tbody id="users-tbody">
+              <tr class="empty-row">
+                <td colspan="6">Sin usuarios para mostrar.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- Bitácora -->
-      <section id="section-bitacora" style="display:none;">
-        <h2 style="font-size:1.3rem; color:var(--primary); margin-bottom:1.5rem;">Bitácora de auditoría</h2>
-
-        <div class="card" style="margin-bottom:1rem;">
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <select class="form-control" style="max-width:160px;">
-              <option>Todos los módulos</option>
-              <option>AUTH</option>
-              <option>DOCUMENTOS</option>
-              <option>USUARIOS</option>
-            </select>
-            <input type="date" class="form-control" style="max-width:180px;" />
-          </div>
+      <section id="section-bitacora" class="hidden-section">
+        <div class="section-header">
+          <h2 class="section-title">Bitácora de auditoría</h2>
+          <button id="btn-refresh-bitacora" class="btn btn-outline" type="button">Actualizar</button>
         </div>
 
-        <div class="card">
-          <ul class="timeline">
-            <li class="timeline-item accion-revocar">
-              <div class="timeline-time">Hoy 14:32 · 192.168.1.1</div>
-              <div class="timeline-text"><strong>admin@casamonarca.org</strong> revocó el documento <code>MNR-2023-089</code> — módulo DOCUMENTOS</div>
-            </li>
-            <li class="timeline-item">
-              <div class="timeline-time">Hoy 13:15 · 192.168.1.1</div>
-              <div class="timeline-text"><strong>operador@casamonarca.org</strong> emitió el documento <code>MNR-2024-001</code> — módulo DOCUMENTOS</div>
-            </li>
-            <li class="timeline-item accion-login">
-              <div class="timeline-time">Hoy 09:01 · 10.0.0.5</div>
-              <div class="timeline-text"><strong>admin@casamonarca.org</strong> inició sesión — módulo AUTH</div>
-            </li>
-            <li class="timeline-item">
-              <div class="timeline-time">Ayer 17:45 · 192.168.1.2</div>
-              <div class="timeline-text"><strong>operador@casamonarca.org</strong> creó usuario <code>nuevo@casamonarca.org</code> — módulo USUARIOS</div>
-            </li>
-          </ul>
+        <div class="card table-wrapper">
+          <table id="bitacora-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Acción</th>
+                <th>Módulo</th>
+                <th>Documento</th>
+                <th>Usuario</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="bitacora-tbody">
+              <tr class="empty-row">
+                <td colspan="6">Sin eventos registrados.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
-
     </main>
   </div>
 
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <script type="module">
-    import { getCurrentUser, logout } from './js/api.js';
+    import {
+      fetchSession,
+      getCurrentUser,
+      logout,
+      listDocumentos,
+      createDocumento,
+      updateDocumento,
+      deleteDocumento,
+      emitirDocumento,
+      revocarDocumento,
+      listBitacora,
+      listUsuarios,
+      register,
+      desactivarUsuario,
+    } from './js/api.js';
 
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      window.location.href = 'index.html';
-    }
+    const ROLE_ADMIN = 'administrador';
+    const ROLE_EMISOR = 'emisor';
 
-    const userNameEl = document.getElementById('user-name');
-    if (userNameEl && currentUser) {
-      userNameEl.textContent = `${currentUser.nombre || currentUser.email}`;
-    }
+    const state = {
+      user: null,
+      documentos: [],
+      usuarios: [],
+      eventos: [],
+      filters: {
+        q: '',
+        estado: '',
+      },
+    };
 
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        logout();
-        window.location.href = 'index.html';
+    const refs = {
+      docsTbody: document.getElementById('docs-tbody'),
+      usersTbody: document.getElementById('users-tbody'),
+      bitacoraTbody: document.getElementById('bitacora-tbody'),
+      toastContainer: document.getElementById('toast-container'),
+      docForm: document.getElementById('doc-form'),
+      userForm: document.getElementById('user-form'),
+      docEditId: document.getElementById('doc-edit-id'),
+      docFormTitle: document.getElementById('doc-form-title'),
+      docCancelEdit: document.getElementById('btn-cancel-edit'),
+      docSave: document.getElementById('btn-save-doc'),
+      userRolePill: document.getElementById('user-role-pill'),
+      userName: document.getElementById('user-name'),
+      navUsuarios: document.getElementById('nav-usuarios'),
+      navBitacora: document.getElementById('nav-bitacora'),
+      sectionUsuarios: document.getElementById('section-usuarios'),
+      sectionBitacora: document.getElementById('section-bitacora'),
+      docFormCard: document.getElementById('doc-form-card'),
+    };
+
+    const escapeHtml = (value = '') =>
+      String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const roleLabel = (role) => {
+      if (role === ROLE_ADMIN) return 'Administrador';
+      if (role === ROLE_EMISOR) return 'Emisor';
+      return 'Consultor';
+    };
+
+    const roleClass = (role) => {
+      if (role === ROLE_ADMIN) return 'role-pill-admin';
+      if (role === ROLE_EMISOR) return 'role-pill-emisor';
+      return 'role-pill-consultor';
+    };
+
+    const getRole = () => String(state.user?.role_name || state.user?.rol_nombre || '').toLowerCase();
+    const canManageDocuments = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
+    const canManageUsers = () => getRole() === ROLE_ADMIN;
+    const canViewBitacora = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
+
+    const formatDate = (value) => {
+      if (!value) return 'Sin dato';
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return 'Sin dato';
+      return parsed.toLocaleString('es-MX', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
       });
-    }
+    };
 
-    // Navegación por secciones
-    const sections = ['overview', 'documentos', 'usuarios', 'bitacora'];
+    const showToast = (type, message) => {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      refs.toastContainer.appendChild(toast);
 
-    function showSection(name) {
-      sections.forEach(s => {
-        document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 220);
+      }, 3600);
+    };
+
+    const setButtonBusy = (button, busy, idleText) => {
+      if (!button) return;
+      if (busy) {
+        button.classList.add('is-loading');
+        button.disabled = true;
+      } else {
+        button.classList.remove('is-loading');
+        button.disabled = false;
+        if (idleText) button.textContent = idleText;
+      }
+    };
+
+    const getBadgeClass = (estado) => {
+      if (estado === 'emitido') return 'badge-emitido';
+      if (estado === 'revocado') return 'badge-revocado';
+      return 'badge-borrador';
+    };
+
+    const getEstadoLabel = (estado) => {
+      if (estado === 'emitido') return 'Emitido';
+      if (estado === 'revocado') return 'Revocado';
+      return 'Borrador';
+    };
+
+    const renderSummary = (resumen = {}) => {
+      document.getElementById('stat-total').textContent = String(resumen.total ?? 0);
+      document.getElementById('stat-emitidos').textContent = String(resumen.emitidos ?? 0);
+      document.getElementById('stat-borradores').textContent = String(resumen.borradores ?? 0);
+      document.getElementById('stat-revocados').textContent = String(resumen.revocados ?? 0);
+    };
+
+    const buildDocActions = (doc) => {
+      const verifyTarget = encodeURIComponent(doc.qr_token || doc.folio || String(doc.id));
+      const verifyLink = `<a class="btn btn-outline btn-sm" href="verificar.php?token=${verifyTarget}" target="_blank" rel="noopener">Verificar</a>`;
+
+      if (!canManageDocuments()) {
+        return verifyLink;
+      }
+
+      if (doc.estado === 'borrador') {
+        return `
+          <button class="btn btn-outline btn-sm" type="button" data-action="editar" data-id="${doc.id}">Editar</button>
+          <button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>
+          <button class="btn btn-danger btn-sm" type="button" data-action="eliminar" data-id="${doc.id}">Eliminar</button>
+          ${verifyLink}
+        `;
+      }
+
+      if (doc.estado === 'emitido') {
+        return `
+          <button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>
+          ${verifyLink}
+        `;
+      }
+
+      return verifyLink;
+    };
+
+    const renderDocumentRows = () => {
+      if (!state.documentos.length) {
+        refs.docsTbody.innerHTML = '<tr class="empty-row"><td colspan="6">Sin documentos para mostrar.</td></tr>';
+        return;
+      }
+
+      refs.docsTbody.innerHTML = state.documentos
+        .map((doc) => {
+          const firmado = doc.firmado ? 'Firmado' : 'Pendiente';
+          return `
+            <tr data-doc-id="${doc.id}">
+              <td><code>${escapeHtml(doc.folio)}</code></td>
+              <td>${escapeHtml(doc.titulo)}</td>
+              <td><span class="badge ${getBadgeClass(doc.estado)}">${getEstadoLabel(doc.estado)}</span></td>
+              <td>${firmado}</td>
+              <td>${formatDate(doc.updated_at || doc.created_at)}</td>
+              <td>
+                <div class="actions-cell">
+                  ${buildDocActions(doc)}
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    };
+
+    const renderUsersRows = () => {
+      if (!state.usuarios.length) {
+        refs.usersTbody.innerHTML = '<tr class="empty-row"><td colspan="6">Sin usuarios para mostrar.</td></tr>';
+        return;
+      }
+
+      refs.usersTbody.innerHTML = state.usuarios
+        .map((user) => {
+          const activoText = user.activo ? 'Activo' : 'Inactivo';
+          const estadoBadge = user.activo ? 'badge-emitido' : 'badge-revocado';
+          const canDeactivate = user.activo && Number(user.id) !== Number(state.user?.id);
+          const actions = canDeactivate
+            ? `<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`
+            : '<span class="muted-text">Sin acciones</span>';
+
+          return `
+            <tr>
+              <td>${escapeHtml(user.nombre)}</td>
+              <td>${escapeHtml(user.email)}</td>
+              <td>${escapeHtml(roleLabel(String(user.rol_nombre || 'consultor').toLowerCase()))}</td>
+              <td><span class="badge ${estadoBadge}">${activoText}</span></td>
+              <td>${formatDate(user.ultimo_login)}</td>
+              <td>${actions}</td>
+            </tr>
+          `;
+        })
+        .join('');
+    };
+
+    const renderBitacoraRows = () => {
+      if (!state.eventos.length) {
+        refs.bitacoraTbody.innerHTML = '<tr class="empty-row"><td colspan="6">Sin eventos registrados.</td></tr>';
+        return;
+      }
+
+      refs.bitacoraTbody.innerHTML = state.eventos
+        .map((ev) => {
+          const usuario = ev.usuario_email || ev.usuario_nombre || 'sistema/publico';
+          return `
+            <tr>
+              <td>${formatDate(ev.created_at)}</td>
+              <td>${escapeHtml(ev.accion || '')}</td>
+              <td>${escapeHtml(ev.modulo || '')}</td>
+              <td>${ev.documento_id ? String(ev.documento_id) : '-'}</td>
+              <td>${escapeHtml(usuario)}</td>
+              <td>${escapeHtml(ev.detalle || '')}</td>
+            </tr>
+          `;
+        })
+        .join('');
+    };
+
+    const clearDocForm = () => {
+      refs.docForm.reset();
+      refs.docEditId.value = '';
+      refs.docFormTitle.textContent = 'Nuevo borrador';
+      refs.docSave.textContent = 'Guardar borrador';
+      refs.docCancelEdit.classList.add('hidden-inline');
+    };
+
+    const fillDocFormForEdit = (doc) => {
+      refs.docEditId.value = String(doc.id);
+      refs.docFormTitle.textContent = `Editar borrador ${doc.folio}`;
+      refs.docSave.textContent = 'Guardar cambios';
+      refs.docCancelEdit.classList.remove('hidden-inline');
+      document.getElementById('doc-title').value = doc.titulo || '';
+      document.getElementById('doc-route').value = doc.ruta_archivo || '';
+      document.getElementById('doc-description').value = doc.descripcion || '';
+      document.getElementById('doc-hash').value = doc.hash_sha256 || '';
+      document.getElementById('doc-content').value = doc.contenido || '';
+      showSection('documentos');
+    };
+
+    const loadDocumentos = async () => {
+      refs.docsTbody.innerHTML = '<tr class="skeleton-row"><td colspan="6"><span class="skeleton-block" style="width: 100%"></span></td></tr>';
+
+      const response = await listDocumentos(state.filters);
+      const envelope = response.data || {};
+      if (!response.ok || envelope.status !== 'success') {
+        state.documentos = [];
+        renderSummary({ total: 0, emitidos: 0, borradores: 0, revocados: 0 });
+        renderDocumentRows();
+        showToast('error', envelope.message || 'No fue posible cargar documentos.');
+        return;
+      }
+
+      const payload = envelope.data || {};
+      state.documentos = Array.isArray(payload.documentos) ? payload.documentos : [];
+      renderSummary(payload.resumen || {});
+      renderDocumentRows();
+    };
+
+    const loadUsuarios = async () => {
+      if (!canManageUsers()) return;
+
+      const response = await listUsuarios();
+      const envelope = response.data || {};
+      if (!response.ok || envelope.status !== 'success') {
+        state.usuarios = [];
+        renderUsersRows();
+        showToast('error', envelope.message || 'No fue posible cargar usuarios.');
+        return;
+      }
+
+      state.usuarios = Array.isArray(envelope.data?.usuarios) ? envelope.data.usuarios : [];
+      renderUsersRows();
+    };
+
+    const loadBitacora = async () => {
+      if (!canViewBitacora()) return;
+
+      const response = await listBitacora({ limit: 200 });
+      const envelope = response.data || {};
+      if (!response.ok || envelope.status !== 'success') {
+        state.eventos = [];
+        renderBitacoraRows();
+        showToast('error', envelope.message || 'No fue posible cargar bitácora.');
+        return;
+      }
+
+      state.eventos = Array.isArray(envelope.data?.eventos) ? envelope.data.eventos : [];
+      renderBitacoraRows();
+    };
+
+    const showSection = (name) => {
+      ['overview', 'documentos', 'usuarios', 'bitacora'].forEach((section) => {
+        const node = document.getElementById(`section-${section}`);
+        if (node) {
+          node.classList.toggle('hidden-section', section !== name);
+        }
       });
-      document.querySelectorAll('.sidebar-menu a').forEach(a => {
-        a.classList.toggle('active', a.dataset.section === name);
-      });
-    }
 
-    document.querySelectorAll('[data-section]').forEach(el => {
-      el.addEventListener('click', (e) => { e.preventDefault(); showSection(el.dataset.section); });
+      document.querySelectorAll('.sidebar-menu a').forEach((link) => {
+        link.classList.toggle('active', link.dataset.section === name);
+      });
+    };
+
+    const applyRoleView = () => {
+      const role = getRole();
+      refs.userRolePill.textContent = roleLabel(role);
+      refs.userRolePill.className = `role-pill ${roleClass(role)}`;
+      refs.userName.textContent = state.user?.nombre || state.user?.email || 'Usuario autenticado';
+
+      if (!canManageUsers()) {
+        refs.navUsuarios.classList.add('hidden-inline');
+        refs.sectionUsuarios.classList.add('hidden-section');
+      }
+
+      if (!canViewBitacora()) {
+        refs.navBitacora.classList.add('hidden-inline');
+        refs.sectionBitacora.classList.add('hidden-section');
+      }
+
+      if (!canManageDocuments()) {
+        refs.docFormCard.classList.add('hidden-section');
+      }
+    };
+
+    document.querySelectorAll('[data-section]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        const next = button.dataset.section;
+        if (next === 'usuarios' && !canManageUsers()) return;
+        if (next === 'bitacora' && !canViewBitacora()) return;
+        showSection(next);
+      });
     });
 
-    // Stats mock
-    document.getElementById('stat-total').textContent = '3';
-    document.getElementById('stat-emitidos').textContent = '1';
-    document.getElementById('stat-borradores').textContent = '1';
-    document.getElementById('stat-revocados').textContent = '1';
+    document.getElementById('btn-logout').addEventListener('click', async (event) => {
+      event.preventDefault();
+      await logout();
+      window.location.href = 'index.html';
+    });
 
-    function revocarDoc(id) {
-      if (confirm('¿Confirmas revocar este documento? Esta acción no se puede deshacer.')) {
-        alert('Documento revocado. (Conectar a /src/modules/documentos.php)');
+    document.getElementById('btn-refresh-overview').addEventListener('click', loadDocumentos);
+    document.getElementById('btn-refresh-docs').addEventListener('click', loadDocumentos);
+    document.getElementById('btn-refresh-users').addEventListener('click', loadUsuarios);
+    document.getElementById('btn-refresh-bitacora').addEventListener('click', loadBitacora);
+
+    document.getElementById('btn-apply-filters').addEventListener('click', async () => {
+      state.filters.q = document.getElementById('filter-docs').value.trim();
+      state.filters.estado = document.getElementById('filter-estado').value;
+      await loadDocumentos();
+    });
+
+    refs.docCancelEdit.addEventListener('click', clearDocForm);
+
+    refs.docForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!canManageDocuments()) {
+        showToast('error', 'No cuentas con permisos para crear o editar documentos.');
+        return;
       }
+
+      const payload = {
+        id: refs.docEditId.value ? Number(refs.docEditId.value) : undefined,
+        titulo: document.getElementById('doc-title').value.trim(),
+        descripcion: document.getElementById('doc-description').value.trim(),
+        contenido: document.getElementById('doc-content').value.trim(),
+        ruta_archivo: document.getElementById('doc-route').value.trim(),
+        hash_sha256: document.getElementById('doc-hash').value.trim(),
+      };
+
+      if (!payload.titulo || !payload.ruta_archivo) {
+        showToast('error', 'Título y ruta de archivo son obligatorios.');
+        return;
+      }
+
+      setButtonBusy(refs.docSave, true);
+      const response = payload.id
+        ? await updateDocumento(payload)
+        : await createDocumento(payload);
+      const envelope = response.data || {};
+      setButtonBusy(refs.docSave, false, payload.id ? 'Guardar cambios' : 'Guardar borrador');
+
+      if (!response.ok || envelope.status !== 'success') {
+        showToast('error', envelope.message || 'No fue posible guardar el documento.');
+        return;
+      }
+
+      clearDocForm();
+      showToast('success', envelope.message || 'Documento guardado.');
+      await loadDocumentos();
+    });
+
+    refs.docsTbody.addEventListener('click', async (event) => {
+      const target = event.target.closest('button[data-action]');
+      if (!target) return;
+
+      const action = target.dataset.action;
+      const id = Number(target.dataset.id);
+      if (!id) return;
+
+      const doc = state.documentos.find((item) => Number(item.id) === id);
+      if (!doc) {
+        showToast('error', 'No fue posible localizar el documento.');
+        return;
+      }
+
+      if (action === 'editar') {
+        fillDocFormForEdit(doc);
+        return;
+      }
+
+      setButtonBusy(target, true);
+      let response = null;
+
+      if (action === 'emitir') {
+        response = await emitirDocumento(id);
+      } else if (action === 'revocar') {
+        const motivo = window.prompt('Motivo de revocación (opcional):', '') || '';
+        response = await revocarDocumento(id, motivo);
+      } else if (action === 'eliminar') {
+        const confirmDelete = window.confirm('¿Deseas eliminar este borrador?');
+        if (!confirmDelete) {
+          setButtonBusy(target, false, 'Eliminar');
+          return;
+        }
+        response = await deleteDocumento(id);
+      }
+
+      const idleLabel = action === 'emitir' ? 'Emitir' : action === 'revocar' ? 'Revocar' : 'Eliminar';
+      setButtonBusy(target, false, idleLabel);
+
+      const envelope = response?.data || {};
+      if (!response?.ok || envelope.status !== 'success') {
+        showToast('error', envelope.message || 'No fue posible ejecutar la acción.');
+        return;
+      }
+
+      clearDocForm();
+      showToast('success', envelope.message || 'Acción completada.');
+      await loadDocumentos();
+      if (canViewBitacora()) {
+        await loadBitacora();
+      }
+    });
+
+    refs.userForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!canManageUsers()) {
+        showToast('error', 'No cuentas con permisos para registrar usuarios.');
+        return;
+      }
+
+      const payload = {
+        nombre: document.getElementById('user-name-input').value.trim(),
+        email: document.getElementById('user-email-input').value.trim(),
+        password: document.getElementById('user-password-input').value,
+        rol: document.getElementById('user-role-input').value,
+      };
+
+      const button = document.getElementById('btn-create-user');
+      setButtonBusy(button, true);
+      const response = await register(payload);
+      const envelope = response.data || {};
+      setButtonBusy(button, false, 'Registrar usuario');
+
+      if (!response.ok || envelope.status !== 'success') {
+        showToast('error', envelope.message || 'No fue posible registrar usuario.');
+        return;
+      }
+
+      refs.userForm.reset();
+      showToast('success', envelope.message || 'Usuario registrado.');
+      await loadUsuarios();
+      await loadBitacora();
+    });
+
+    refs.usersTbody.addEventListener('click', async (event) => {
+      const target = event.target.closest('button[data-user-action="desactivar"]');
+      if (!target) return;
+
+      const id = Number(target.dataset.id);
+      if (!id) return;
+
+      const confirmed = window.confirm('¿Deseas desactivar este usuario?');
+      if (!confirmed) return;
+
+      setButtonBusy(target, true);
+      const response = await desactivarUsuario(id);
+      const envelope = response.data || {};
+      setButtonBusy(target, false, 'Desactivar');
+
+      if (!response.ok || envelope.status !== 'success') {
+        showToast('error', envelope.message || 'No fue posible desactivar el usuario.');
+        return;
+      }
+
+      showToast('success', envelope.message || 'Usuario desactivado.');
+      await loadUsuarios();
+      await loadBitacora();
+    });
+
+    const sessionResponse = await fetchSession();
+    if (!sessionResponse.ok || sessionResponse.data?.status !== 'success') {
+      window.location.href = 'index.html';
+      throw new Error('Sesión no autorizada.');
     }
 
-    window.revocarDoc = revocarDoc;
+    state.user = getCurrentUser();
+    if (!state.user) {
+      window.location.href = 'index.html';
+      throw new Error('Sesión inválida.');
+    }
+
+    applyRoleView();
+    showSection('overview');
+    clearDocForm();
+
+    await loadDocumentos();
+    if (canManageUsers()) {
+      await loadUsuarios();
+    }
+    if (canViewBitacora()) {
+      await loadBitacora();
+    }
   </script>
 </body>
 </html>

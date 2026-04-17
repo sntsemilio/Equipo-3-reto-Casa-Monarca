@@ -1,0 +1,29 @@
+{
+  "name": "equipo-3-reto-casa-monarca",
+  "version": "1.0.0",
+  "description": "Proyecto base para gestionar autenticacion, control de accesos por roles (RBAC),\r emision de documentos y trazabilidad de acciones mediante bitacora.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npm run test:e2e:flujo",
+    "test:e2e:flujo": "node tests/integration/E2E_FlujoGestor.mjs",
+    "test:e2e:lifecycle": "node tests/integration/E2E_DocumentLifecycle.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sntsemilio/Equipo-3-reto-Casa-Monarca.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sntsemilio/Equipo-3-reto-Casa-Monarca/issues"
+  },
+  "homepage": "https://github.com/sntsemilio/Equipo-3-reto-Casa-Monarca#readme",
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  }
+}
