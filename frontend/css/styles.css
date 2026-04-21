@@ -347,6 +347,98 @@ textarea.form-control {
   color: #2f466a;
 }
 
+.role-pill-supervisor {
+  background: #ede0f7;
+  color: #5b2d8a;
+}
+
+.role-pill-verificador {
+  background: #fde8d0;
+  color: #7a3e00;
+}
+
+/* ── Flujo de certificados ── */
+.flujo-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.flujo-step {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 1rem 0.5rem;
+}
+
+.flujo-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 auto 0.5rem;
+}
+
+.flujo-icon-1 { background: #e1e8f5; color: var(--primary); }
+.flujo-icon-2 { background: #fde8d0; color: #7a3e00; }
+.flujo-icon-3 { background: #ede0f7; color: #5b2d8a; }
+.flujo-icon-4 { background: #d8ebdf; color: var(--success); }
+.flujo-icon-5 { background: #f4dca9; color: #6e4900; }
+
+.flujo-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary);
+  margin-bottom: 0.3rem;
+}
+
+.flujo-desc {
+  font-size: 0.78rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.flujo-arrow {
+  font-size: 1.5rem;
+  color: #ccc;
+  align-self: center;
+  padding-top: 0.5rem;
+}
+
+/* ── Tabla de roles ── */
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.roles-table th,
+.roles-table td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.roles-table th:first-child,
+.roles-table td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.roles-table thead th {
+  background: #f4f6fb;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.perm-yes { color: var(--success); font-size: 1rem; }
+.perm-no  { color: #ccc; font-size: 1rem; }
+
 .layout {
   display: grid;
   grid-template-columns: 230px 1fr;

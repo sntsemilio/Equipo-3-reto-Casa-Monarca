@@ -68,6 +68,128 @@
             <a class="btn btn-outline" href="verificar.php" target="_blank" rel="noopener">Validación pública</a>
           </div>
         </div>
+
+        <!-- Flujo de creación de certificados -->
+        <div class="card">
+          <h3 class="card-title">Flujo de creación de certificados</h3>
+          <p class="muted-text" style="margin-bottom:1.2rem;">Proceso que sigue cada certificado desde su creación hasta su emisión oficial.</p>
+          <div class="flujo-steps">
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-1">1</div>
+              <div class="flujo-label">Crear borrador</div>
+              <div class="flujo-desc">El emisor registra título, ruta y contenido del documento.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-2">2</div>
+              <div class="flujo-label">Generar hash</div>
+              <div class="flujo-desc">Se calcula SHA-256 del contenido para garantizar integridad.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-3">3</div>
+              <div class="flujo-label">Firma digital</div>
+              <div class="flujo-desc">El documento se firma con RSA-PSS al emitirse.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-4">4</div>
+              <div class="flujo-label">Emisión</div>
+              <div class="flujo-desc">Estado cambia a "emitido" y se asigna folio único.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-5">5</div>
+              <div class="flujo-label">Verificación pública</div>
+              <div class="flujo-desc">Cualquier persona puede validar el certificado con su folio.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de acciones permitidas por rol -->
+        <div class="card">
+          <h3 class="card-title">Acciones permitidas por rol</h3>
+          <div class="table-wrapper" style="margin-top:0.75rem;">
+            <table class="roles-table">
+              <thead>
+                <tr>
+                  <th>Acción</th>
+                  <th>Administrador</th>
+                  <th>Supervisor</th>
+                  <th>Emisor</th>
+                  <th>Verificador</th>
+                  <th>Consultor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ver documentos</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                </tr>
+                <tr>
+                  <td>Crear borrador</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Emitir certificado</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Revocar certificado</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Verificar certificado (público)</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                </tr>
+                <tr>
+                  <td>Ver bitácora</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Gestionar usuarios</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Cambiar rol de usuario</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section id="section-documentos" class="hidden-section">
@@ -176,6 +298,8 @@
               <select id="user-role-input" class="form-control" required>
                 <option value="consultor">Consultor</option>
                 <option value="emisor">Emisor</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="verificador">Verificador</option>
                 <option value="administrador">Administrador</option>
               </select>
             </div>
@@ -253,10 +377,14 @@
       listUsuarios,
       register,
       desactivarUsuario,
+      cambiarRolUsuario,
     } from './js/api.js';
 
     const ROLE_ADMIN = 'administrador';
     const ROLE_EMISOR = 'emisor';
+    const ROLE_SUPERVISOR = 'supervisor';
+    const ROLE_VERIFICADOR = 'verificador';
+    const ROLE_CONSULTOR = 'consultor';
 
     const state = {
       user: null,
@@ -300,19 +428,24 @@
     const roleLabel = (role) => {
       if (role === ROLE_ADMIN) return 'Administrador';
       if (role === ROLE_EMISOR) return 'Emisor';
+      if (role === ROLE_SUPERVISOR) return 'Supervisor';
+      if (role === ROLE_VERIFICADOR) return 'Verificador';
       return 'Consultor';
     };
 
     const roleClass = (role) => {
       if (role === ROLE_ADMIN) return 'role-pill-admin';
       if (role === ROLE_EMISOR) return 'role-pill-emisor';
+      if (role === ROLE_SUPERVISOR) return 'role-pill-supervisor';
+      if (role === ROLE_VERIFICADOR) return 'role-pill-verificador';
       return 'role-pill-consultor';
     };
 
     const getRole = () => String(state.user?.role_name || state.user?.rol_nombre || '').toLowerCase();
-    const canManageDocuments = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
+    const canManageDocuments = () => [ROLE_ADMIN, ROLE_SUPERVISOR, ROLE_EMISOR].includes(getRole());
+    const canRevocarDocuments = () => [ROLE_ADMIN, ROLE_SUPERVISOR].includes(getRole());
     const canManageUsers = () => getRole() === ROLE_ADMIN;
-    const canViewBitacora = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
+    const canViewBitacora = () => [ROLE_ADMIN, ROLE_SUPERVISOR, ROLE_EMISOR].includes(getRole());
 
     const formatDate = (value) => {
       if (!value) return 'Sin dato';
@@ -389,10 +522,10 @@
       }
 
       if (doc.estado === 'emitido') {
-        return `
-          <button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>
-          ${verifyLink}
-        `;
+        const revocarBtn = canRevocarDocuments()
+          ? `<button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>`
+          : '';
+        return `${revocarBtn}${verifyLink}`;
       }
 
       return verifyLink;
@@ -436,8 +569,15 @@
           const activoText = user.activo ? 'Activo' : 'Inactivo';
           const estadoBadge = user.activo ? 'badge-emitido' : 'badge-revocado';
           const canDeactivate = user.activo && Number(user.id) !== Number(state.user?.id);
-          const actions = canDeactivate
+          const canChangeRole = Number(user.id) !== Number(state.user?.id);
+          const deactivateBtn = canDeactivate
             ? `<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`
+            : '';
+          const changeRoleBtn = canChangeRole
+            ? `<button class="btn btn-outline btn-sm" type="button" data-user-action="cambiar-rol" data-id="${user.id}" data-rol="${escapeHtml(String(user.rol_nombre || 'consultor').toLowerCase())}">Cambiar rol</button>`
+            : '';
+          const actions = (deactivateBtn || changeRoleBtn)
+            ? `${changeRoleBtn} ${deactivateBtn}`
             : '<span class="muted-text">Sin acciones</span>';
 
           return `
@@ -737,28 +877,67 @@
     });
 
     refs.usersTbody.addEventListener('click', async (event) => {
-      const target = event.target.closest('button[data-user-action="desactivar"]');
+      const target = event.target.closest('button[data-user-action]');
       if (!target) return;
 
+      const action = target.dataset.userAction;
       const id = Number(target.dataset.id);
       if (!id) return;
 
-      const confirmed = window.confirm('¿Deseas desactivar este usuario?');
-      if (!confirmed) return;
+      if (action === 'desactivar') {
+        const confirmed = window.confirm('¿Deseas desactivar este usuario?');
+        if (!confirmed) return;
 
-      setButtonBusy(target, true);
-      const response = await desactivarUsuario(id);
-      const envelope = response.data || {};
-      setButtonBusy(target, false, 'Desactivar');
+        setButtonBusy(target, true);
+        const response = await desactivarUsuario(id);
+        const envelope = response.data || {};
+        setButtonBusy(target, false, 'Desactivar');
 
-      if (!response.ok || envelope.status !== 'success') {
-        showToast('error', envelope.message || 'No fue posible desactivar el usuario.');
-        return;
+        if (!response.ok || envelope.status !== 'success') {
+          showToast('error', envelope.message || 'No fue posible desactivar el usuario.');
+          return;
+        }
+
+        showToast('success', envelope.message || 'Usuario desactivado.');
+        await loadUsuarios();
+        await loadBitacora();
       }
 
-      showToast('success', envelope.message || 'Usuario desactivado.');
-      await loadUsuarios();
-      await loadBitacora();
+      if (action === 'cambiar-rol') {
+        const rolActual = target.dataset.rol || 'consultor';
+        const roles = ['consultor', 'verificador', 'emisor', 'supervisor', 'administrador'];
+        const opcionesStr = roles.map((r, i) => `${i + 1}. ${roleLabel(r)}`).join('\n');
+        const input = window.prompt(
+          `Rol actual: ${roleLabel(rolActual)}\n\nSelecciona nuevo rol:\n${opcionesStr}\n\nEscribe el nombre del rol:`,
+          rolActual
+        );
+        if (!input) return;
+
+        const nuevoRol = input.trim().toLowerCase();
+        if (!roles.includes(nuevoRol)) {
+          showToast('error', `Rol "${nuevoRol}" no válido. Opciones: ${roles.join(', ')}`);
+          return;
+        }
+
+        if (nuevoRol === rolActual) {
+          showToast('error', 'El rol seleccionado es el mismo que el actual.');
+          return;
+        }
+
+        setButtonBusy(target, true);
+        const response = await cambiarRolUsuario(id, nuevoRol);
+        const envelope = response.data || {};
+        setButtonBusy(target, false, 'Cambiar rol');
+
+        if (!response.ok || envelope.status !== 'success') {
+          showToast('error', envelope.message || 'No fue posible cambiar el rol.');
+          return;
+        }
+
+        showToast('success', envelope.message || `Rol cambiado a ${roleLabel(nuevoRol)}.`);
+        await loadUsuarios();
+        await loadBitacora();
+      }
     });
 
     const sessionResponse = await fetchSession();
