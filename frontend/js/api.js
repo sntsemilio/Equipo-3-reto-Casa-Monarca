@@ -21,6 +21,7 @@ const ENDPOINTS = {
   bitacoraList: ['/api/bitacora-list.php', '/src/api/bitacora-list.php'],
   usuariosList: ['/api/usuarios-list.php', '/src/api/usuarios-list.php'],
   usuariosDesactivar: ['/api/usuarios-desactivar.php', '/src/api/usuarios-desactivar.php'],
+  usuariosCambiarRol: ['/api/usuarios-cambiar-rol.php', '/src/api/usuarios-cambiar-rol.php'],
 };
 
 const buildCandidatesWithQuery = (candidates, queryParams = {}) => {
@@ -246,6 +247,10 @@ export const listUsuarios = async () => {
 
 export const desactivarUsuario = async (id) => {
   return postJson(ENDPOINTS.usuariosDesactivar, { id });
+};
+
+export const cambiarRolUsuario = async (id, rol) => {
+  return postJson(ENDPOINTS.usuariosCambiarRol, { id, rol });
 };
 
 export const consultarDocumentoPublico = async (identificador) => {

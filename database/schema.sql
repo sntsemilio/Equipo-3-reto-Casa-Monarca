@@ -84,7 +84,9 @@ INSERT INTO roles (id, nombre, descripcion)
 VALUES
     (1, 'administrador', 'Control total del gestor'),
     (2, 'emisor', 'Puede crear, emitir y revocar documentos'),
-    (3, 'consultor', 'Acceso de lectura y consulta de trazabilidad')
+    (3, 'consultor', 'Acceso de lectura y consulta de trazabilidad'),
+    (4, 'supervisor', 'Puede emitir, revocar y revisar documentos, sin gestionar usuarios'),
+    (5, 'verificador', 'Solo puede verificar la autenticidad de documentos emitidos')
 ON DUPLICATE KEY UPDATE
     descripcion = VALUES(descripcion);
 

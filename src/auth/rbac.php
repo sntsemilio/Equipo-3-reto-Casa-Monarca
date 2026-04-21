@@ -8,8 +8,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 final class Rbac
 {
     public const ROLE_ADMINISTRADOR = 'administrador';
-    public const ROLE_EMISOR = 'emisor';
-    public const ROLE_CONSULTOR = 'consultor';
+    public const ROLE_SUPERVISOR    = 'supervisor';
+    public const ROLE_EMISOR        = 'emisor';
+    public const ROLE_VERIFICADOR   = 'verificador';
+    public const ROLE_CONSULTOR     = 'consultor';
 
     private static function normalizeRole(string $role): string
     {
@@ -62,6 +64,14 @@ final class Rbac
 
             if ($rolId === 3) {
                 return self::ROLE_CONSULTOR;
+            }
+
+            if ($rolId === 4) {
+                return self::ROLE_SUPERVISOR;
+            }
+
+            if ($rolId === 5) {
+                return self::ROLE_VERIFICADOR;
             }
         }
 
