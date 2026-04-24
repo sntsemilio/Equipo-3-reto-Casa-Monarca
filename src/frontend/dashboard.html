@@ -33,8 +33,9 @@
         <li><a class="active" href="#" data-section="overview">Resumen</a></li>
         <li><a href="#" data-section="documentos">Documentos</a></li>
         <li><a id="nav-usuarios" href="#" data-section="usuarios">Usuarios</a></li>
+        <li><a id="nav-permisos" href="#" data-section="permisos">Permisos</a></li>
         <li><a id="nav-bitacora" href="#" data-section="bitacora">Bitácora</a></li>
-        <li><a id="nav-testing-matrix" href="dev/testing-matrix.html" target="_blank" rel="noopener">Testing Matrix</a></li>
+        <li><a id="nav-testing" href="testing-matrix.html">Matriz de pruebas</a></li>
       </ul>
     </aside>
 
@@ -67,6 +68,128 @@
             <button class="btn btn-primary" type="button" data-section="documentos">Ir a documentos</button>
             <button id="btn-refresh-overview" class="btn btn-outline" type="button">Actualizar resumen</button>
             <a class="btn btn-outline" href="verificar.php" target="_blank" rel="noopener">Validación pública</a>
+          </div>
+        </div>
+
+        <!-- Flujo de creación de certificados -->
+        <div class="card">
+          <h3 class="card-title">Flujo de creación de certificados</h3>
+          <p class="muted-text" style="margin-bottom:1.2rem;">Proceso que sigue cada certificado desde su creación hasta su emisión oficial.</p>
+          <div class="flujo-steps">
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-1">1</div>
+              <div class="flujo-label">Crear borrador</div>
+              <div class="flujo-desc">El emisor registra título, ruta y contenido del documento.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-2">2</div>
+              <div class="flujo-label">Generar hash</div>
+              <div class="flujo-desc">Se calcula SHA-256 del contenido para garantizar integridad.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-3">3</div>
+              <div class="flujo-label">Firma digital</div>
+              <div class="flujo-desc">El documento se firma con RSA-PSS al emitirse.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-4">4</div>
+              <div class="flujo-label">Emisión</div>
+              <div class="flujo-desc">Estado cambia a "emitido" y se asigna folio único.</div>
+            </div>
+            <div class="flujo-arrow">→</div>
+            <div class="flujo-step">
+              <div class="flujo-icon flujo-icon-5">5</div>
+              <div class="flujo-label">Verificación pública</div>
+              <div class="flujo-desc">Cualquier persona puede validar el certificado con su folio.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de acciones permitidas por rol -->
+        <div class="card">
+          <h3 class="card-title">Acciones permitidas por rol</h3>
+          <div class="table-wrapper" style="margin-top:0.75rem;">
+            <table class="roles-table">
+              <thead>
+                <tr>
+                  <th>Acción</th>
+                  <th>Administrador</th>
+                  <th>Supervisor</th>
+                  <th>Emisor</th>
+                  <th>Verificador</th>
+                  <th>Consultor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ver documentos</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                </tr>
+                <tr>
+                  <td>Crear borrador</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Emitir certificado</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Revocar certificado</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Verificar certificado (público)</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                </tr>
+                <tr>
+                  <td>Ver bitácora</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Gestionar usuarios</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+                <tr>
+                  <td>Cambiar rol de usuario</td>
+                  <td class="perm-yes">✅</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                  <td class="perm-no">—</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -120,7 +243,6 @@
             <select id="filter-estado" class="form-control">
               <option value="">Todos los estados</option>
               <option value="borrador">Borrador</option>
-              <option value="aprobado">Aprobado</option>
               <option value="emitido">Emitido</option>
               <option value="revocado">Revocado</option>
             </select>
@@ -170,16 +292,17 @@
 
             <div class="form-field">
               <label for="user-password-input">Contraseña</label>
-              <input id="user-password-input" class="form-control" type="password" minlength="10" required />
+              <input id="user-password-input" class="form-control" type="password" minlength="8" required />
             </div>
 
             <div class="form-field">
               <label for="user-role-input">Rol</label>
               <select id="user-role-input" class="form-control" required>
-                <option value="voluntario">Voluntario</option>
-                <option value="operativo">Operativo</option>
-                <option value="coordinador">Coordinador</option>
-                <option value="admin">Admin</option>
+                <option value="consultor">Consultor</option>
+                <option value="emisor">Emisor</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="verificador">Verificador</option>
+                <option value="administrador">Administrador</option>
               </select>
             </div>
 
@@ -207,12 +330,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-
-        <div class="card">
-          <h3 class="card-title">Matriz de permisos dinámica (Vue)</h3>
-          <p class="muted-text" style="margin-bottom:0.8rem;">Admin puede activar/desactivar permisos por rol y por usuario en tiempo real.</p>
-          <div id="rbac-vue-root"></div>
         </div>
       </section>
 
@@ -242,44 +359,66 @@
           </table>
         </div>
       </section>
+
+      <section id="section-permisos" class="hidden-section">
+        <div class="section-header">
+          <h2 class="section-title">Matriz de Permisos</h2>
+          <button id="btn-refresh-permisos" class="btn btn-outline" type="button">Actualizar</button>
+        </div>
+
+        <div class="card table-wrapper">
+          <table id="permisos-table">
+            <thead id="permisos-thead">
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+              </tr>
+            </thead>
+            <tbody id="permisos-tbody">
+              <tr class="empty-row">
+                <td colspan="20">Cargando matriz de permisos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </div>
 
-  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-  <div id="cert-auth-modal" class="modal-backdrop hidden-section" aria-hidden="true">
-    <div class="modal-card">
-      <h3 class="card-title" id="cert-auth-title">Autorizar acción restringida</h3>
-      <p class="muted-text" id="cert-auth-subtitle">Carga tu .cer y .key para validar la acción.</p>
-
-      <form id="cert-auth-form" class="inline-form" style="grid-template-columns:1fr; margin-top:0.6rem;">
-        <input id="cert-auth-document-id" type="hidden" value="" />
-        <input id="cert-auth-action" type="hidden" value="approve_document" />
-
+  <!-- Certificate Authorization Modal -->
+  <div id="cert-auth-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:520px;">
+      <h3 class="card-title" id="cert-modal-title">Autorización criptográfica</h3>
+      <p class="muted-text" style="margin-bottom:1rem;">Sube tu certificado (.cer) y llave privada (.key) para autorizar esta acción restringida.</p>
+      <form id="cert-auth-form">
+        <input type="hidden" id="cert-doc-id" value="" />
+        <input type="hidden" id="cert-action" value="" />
         <div class="form-field">
-          <label for="cert-file-input">Archivo .cer</label>
-          <input id="cert-file-input" class="form-control" type="file" accept=".cer,.pem,.crt" required />
+          <label for="cert-cer-file">Certificado (.cer)</label>
+          <input id="cert-cer-file" class="form-control" type="file" accept=".cer,.pem,.crt" required />
         </div>
-
         <div class="form-field">
-          <label for="key-file-input">Archivo .key</label>
-          <input id="key-file-input" class="form-control" type="file" accept=".key,.pem" required />
+          <label for="cert-key-file">Llave privada (.key)</label>
+          <input id="cert-key-file" class="form-control" type="file" accept=".key,.pem" required />
         </div>
-
         <div class="form-field">
-          <label for="key-password-input">Password de llave privada (opcional)</label>
-          <input id="key-password-input" class="form-control" type="password" placeholder="Si tu .key está cifrada" />
+          <label for="cert-key-password">Contraseña de llave (opcional)</label>
+          <input id="cert-key-password" class="form-control" type="password" placeholder="Dejar vacío si no tiene contraseña" />
         </div>
-
+        <div id="cert-revoke-reason-field" class="form-field" style="display:none;">
+          <label for="cert-revoke-reason">Motivo de revocación</label>
+          <input id="cert-revoke-reason" class="form-control" type="text" placeholder="Motivo de la revocación" />
+        </div>
+        <div id="cert-auth-error" class="alert alert-error hidden" role="alert"></div>
         <div class="form-actions">
-          <button id="btn-cert-auth-confirm" class="btn btn-primary" type="submit">Autorizar</button>
-          <button id="btn-cert-auth-cancel" class="btn btn-outline" type="button">Cancelar</button>
+          <button id="btn-cert-submit" class="btn btn-primary" type="submit">Autorizar</button>
+          <button id="btn-cert-cancel" class="btn btn-outline" type="button">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script type="module">
     import {
@@ -292,22 +431,22 @@
       deleteDocumento,
       emitirDocumento,
       revocarDocumento,
-      authorizeDocumentoAction,
       listBitacora,
       listUsuarios,
       register,
       desactivarUsuario,
       cambiarRolUsuario,
-      regenerarCertificadoUsuario,
-      listPermisosMatrix,
-      updatePermiso,
-      buildOneTimeDownloadUrl,
+      getPermissionsMatrix,
+      updatePermission,
+      authorizeDocumentAction,
+      regenerarCertificado,
     } from './js/api.js';
 
-    const ROLE_ADMIN = 'admin';
-    const ROLE_COORDINADOR = 'coordinador';
-    const ROLE_OPERATIVO = 'operativo';
-    const ROLE_VOLUNTARIO = 'voluntario';
+    const ROLE_ADMIN = 'administrador';
+    const ROLE_EMISOR = 'emisor';
+    const ROLE_SUPERVISOR = 'supervisor';
+    const ROLE_VERIFICADOR = 'verificador';
+    const ROLE_CONSULTOR = 'consultor';
 
     const state = {
       user: null,
@@ -335,22 +474,26 @@
       userName: document.getElementById('user-name'),
       navUsuarios: document.getElementById('nav-usuarios'),
       navBitacora: document.getElementById('nav-bitacora'),
-      navTestingMatrix: document.getElementById('nav-testing-matrix'),
+      navPermisos: document.getElementById('nav-permisos'),
+      navTesting: document.getElementById('nav-testing'),
       sectionUsuarios: document.getElementById('section-usuarios'),
       sectionBitacora: document.getElementById('section-bitacora'),
+      sectionPermisos: document.getElementById('section-permisos'),
       docFormCard: document.getElementById('doc-form-card'),
-      certAuthModal: document.getElementById('cert-auth-modal'),
-      certAuthForm: document.getElementById('cert-auth-form'),
-      certAuthTitle: document.getElementById('cert-auth-title'),
-      certAuthSubtitle: document.getElementById('cert-auth-subtitle'),
-      certAuthDocumentId: document.getElementById('cert-auth-document-id'),
-      certAuthAction: document.getElementById('cert-auth-action'),
-      certAuthConfirm: document.getElementById('btn-cert-auth-confirm'),
-      certAuthCancel: document.getElementById('btn-cert-auth-cancel'),
-      certFileInput: document.getElementById('cert-file-input'),
-      keyFileInput: document.getElementById('key-file-input'),
-      keyPasswordInput: document.getElementById('key-password-input'),
-      rbacVueRoot: document.getElementById('rbac-vue-root'),
+      permisosThead: document.getElementById('permisos-thead'),
+      permisosTbody: document.getElementById('permisos-tbody'),
+      certModal: document.getElementById('cert-auth-modal'),
+      certForm: document.getElementById('cert-auth-form'),
+      certDocId: document.getElementById('cert-doc-id'),
+      certAction: document.getElementById('cert-action'),
+      certCerFile: document.getElementById('cert-cer-file'),
+      certKeyFile: document.getElementById('cert-key-file'),
+      certKeyPassword: document.getElementById('cert-key-password'),
+      certRevokeReasonField: document.getElementById('cert-revoke-reason-field'),
+      certRevokeReason: document.getElementById('cert-revoke-reason'),
+      certAuthError: document.getElementById('cert-auth-error'),
+      certSubmit: document.getElementById('btn-cert-submit'),
+      certCancel: document.getElementById('btn-cert-cancel'),
     };
 
     const escapeHtml = (value = '') =>
@@ -363,32 +506,26 @@
 
     const roleLabel = (role) => {
       if (role === ROLE_ADMIN) return 'Administrador';
-      if (role === ROLE_COORDINADOR) return 'Coordinador';
-      if (role === ROLE_OPERATIVO) return 'Operativo';
-      return 'Voluntario';
+      if (role === ROLE_EMISOR) return 'Emisor';
+      if (role === ROLE_SUPERVISOR) return 'Supervisor';
+      if (role === ROLE_VERIFICADOR) return 'Verificador';
+      return 'Consultor';
     };
 
     const roleClass = (role) => {
       if (role === ROLE_ADMIN) return 'role-pill-admin';
-      if (role === ROLE_COORDINADOR) return 'role-pill-supervisor';
-      if (role === ROLE_OPERATIVO) return 'role-pill-emisor';
+      if (role === ROLE_EMISOR) return 'role-pill-emisor';
+      if (role === ROLE_SUPERVISOR) return 'role-pill-supervisor';
+      if (role === ROLE_VERIFICADOR) return 'role-pill-verificador';
       return 'role-pill-consultor';
     };
 
     const getRole = () => String(state.user?.role_name || state.user?.rol_nombre || '').toLowerCase();
-    const getPermissions = () => {
-      const raw = state.user?.permissions;
-      return Array.isArray(raw) ? raw.map((p) => String(p).toLowerCase()) : [];
-    };
-
-    const hasPermission = (permission) => getPermissions().includes(String(permission).toLowerCase());
-    const canManageDocuments = () => hasPermission('sign_documents');
-    const canApproveDocuments = () => hasPermission('approve_documents');
-    const canRevokeDocuments = () => hasPermission('revoke_documents');
-    const canManageUsers = () => hasPermission('manage_users');
-    const canManageRbac = () => hasPermission('manage_role_permissions') || hasPermission('manage_user_permissions');
-    const canViewBitacora = () => hasPermission('view_audit_log');
-    const canRunTestingMatrix = () => hasPermission('run_testing_matrix');
+    const canManageDocuments = () => [ROLE_ADMIN, ROLE_SUPERVISOR, ROLE_EMISOR].includes(getRole());
+    const canRevocarDocuments = () => [ROLE_ADMIN, ROLE_SUPERVISOR].includes(getRole());
+    const canManageUsers = () => getRole() === ROLE_ADMIN;
+    const canViewBitacora = () => [ROLE_ADMIN, ROLE_SUPERVISOR, ROLE_EMISOR].includes(getRole());
+    const canManagePermissions = () => getRole() === ROLE_ADMIN;
 
     const formatDate = (value) => {
       if (!value) return 'Sin dato';
@@ -431,14 +568,12 @@
     const getBadgeClass = (estado) => {
       if (estado === 'emitido') return 'badge-emitido';
       if (estado === 'revocado') return 'badge-revocado';
-      if (estado === 'aprobado') return 'badge-aprobado';
       return 'badge-borrador';
     };
 
     const getEstadoLabel = (estado) => {
       if (estado === 'emitido') return 'Emitido';
       if (estado === 'revocado') return 'Revocado';
-      if (estado === 'aprobado') return 'Aprobado';
       return 'Borrador';
     };
 
@@ -453,41 +588,33 @@
       const verifyTarget = encodeURIComponent(doc.qr_token || doc.folio || String(doc.id));
       const verifyLink = `<a class="btn btn-outline btn-sm" href="verificar.php?token=${verifyTarget}" target="_blank" rel="noopener">Verificar</a>`;
 
-      const actions = [];
-      if (!canManageDocuments() && !canApproveDocuments() && !canRevokeDocuments()) {
+      if (!canManageDocuments()) {
         return verifyLink;
       }
 
       if (doc.estado === 'borrador') {
-        if (canManageDocuments()) {
-          actions.push(`<button class="btn btn-outline btn-sm" type="button" data-action="editar" data-id="${doc.id}">Editar</button>`);
-          actions.push(`<button class="btn btn-danger btn-sm" type="button" data-action="eliminar" data-id="${doc.id}">Eliminar</button>`);
-        }
-        if (canApproveDocuments()) {
-          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="autorizar" data-auth-action="approve_document" data-id="${doc.id}">Aprobar (.cer/.key)</button>`);
-        }
-        if (canManageDocuments()) {
-          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>`);
-        }
-
-        actions.push(verifyLink);
-        return actions.join('');
+        return `
+          <button class="btn btn-outline btn-sm" type="button" data-action="editar" data-id="${doc.id}">Editar</button>
+          <button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>
+          <button class="btn btn-primary btn-sm" type="button" data-action="aprobar-cert" data-id="${doc.id}" title="Aprobar con .cer/.key">🔐 Aprobar</button>
+          <button class="btn btn-danger btn-sm" type="button" data-action="eliminar" data-id="${doc.id}">Eliminar</button>
+          ${verifyLink}
+        `;
       }
 
       if (doc.estado === 'aprobado') {
-        if (canManageDocuments()) {
-          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>`);
-        }
-        actions.push(verifyLink);
-        return actions.join('');
+        const emitCertBtn = `<button class="btn btn-accent btn-sm" type="button" data-action="emitir-cert" data-id="${doc.id}" title="Emitir con .cer/.key">🔐 Emitir</button>`;
+        return `${emitCertBtn}${verifyLink}`;
       }
 
       if (doc.estado === 'emitido') {
-        if (canRevokeDocuments()) {
-          actions.push(`<button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>`);
-        }
-        actions.push(verifyLink);
-        return actions.join('');
+        const revocarBtn = canRevocarDocuments()
+          ? `<button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>`
+          : '';
+        const revocarCertBtn = canRevocarDocuments()
+          ? `<button class="btn btn-danger btn-sm" type="button" data-action="revocar-cert" data-id="${doc.id}" title="Revocar con .cer/.key">🔐 Revocar</button>`
+          : '';
+        return `${revocarBtn}${revocarCertBtn}${verifyLink}`;
       }
 
       return verifyLink;
@@ -531,29 +658,22 @@
           const activoText = user.activo ? 'Activo' : 'Inactivo';
           const estadoBadge = user.activo ? 'badge-emitido' : 'badge-revocado';
           const canDeactivate = user.activo && Number(user.id) !== Number(state.user?.id);
-          const roleName = String(user.rol_nombre || ROLE_VOLUNTARIO).toLowerCase();
-          const canRotateKey = [ROLE_ADMIN, ROLE_COORDINADOR].includes(roleName);
-
-          const actionButtons = [];
-          if (canDeactivate) {
-            actionButtons.push(`<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`);
-          }
-          if (Number(user.id) !== Number(state.user?.id)) {
-            actionButtons.push(`<button class="btn btn-outline btn-sm" type="button" data-user-action="cambiar-rol" data-id="${user.id}" data-rol="${escapeHtml(roleName)}">Cambiar rol</button>`);
-          }
-          if (canRotateKey) {
-            actionButtons.push(`<button class="btn btn-outline btn-sm" type="button" data-user-action="regenerar-cert" data-id="${user.id}">Regenerar cert</button>`);
-          }
-
-          const actions = actionButtons.length > 0
-            ? actionButtons.join(' ')
+          const canChangeRole = Number(user.id) !== Number(state.user?.id);
+          const deactivateBtn = canDeactivate
+            ? `<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`
+            : '';
+          const changeRoleBtn = canChangeRole
+            ? `<button class="btn btn-outline btn-sm" type="button" data-user-action="cambiar-rol" data-id="${user.id}" data-rol="${escapeHtml(String(user.rol_nombre || 'consultor').toLowerCase())}">Cambiar rol</button>`
+            : '';
+          const actions = (deactivateBtn || changeRoleBtn)
+            ? `${changeRoleBtn} ${deactivateBtn}`
             : '<span class="muted-text">Sin acciones</span>';
 
           return `
             <tr>
               <td>${escapeHtml(user.nombre)}</td>
               <td>${escapeHtml(user.email)}</td>
-              <td>${escapeHtml(roleLabel(roleName))}</td>
+              <td>${escapeHtml(roleLabel(String(user.rol_nombre || 'consultor').toLowerCase()))}</td>
               <td><span class="badge ${estadoBadge}">${activoText}</span></td>
               <td>${formatDate(user.ultimo_login)}</td>
               <td>${actions}</td>
@@ -586,169 +706,6 @@
         .join('');
     };
 
-    const mountRbacVueApp = () => {
-      if (!refs.rbacVueRoot) {
-        return;
-      }
-
-      if (!canManageRbac()) {
-        refs.rbacVueRoot.innerHTML = '<p class="muted-text">No cuentas con permisos para gestionar la matriz RBAC.</p>';
-        return;
-      }
-
-      if (!window.Vue) {
-        refs.rbacVueRoot.innerHTML = '<p class="muted-text">No se pudo cargar Vue para la matriz de permisos.</p>';
-        return;
-      }
-
-      const { createApp } = window.Vue;
-      createApp({
-        data() {
-          return {
-            loading: false,
-            error: '',
-            matrix: null,
-          };
-        },
-        computed: {
-          roles() {
-            return Array.isArray(this.matrix?.roles) ? this.matrix.roles : [];
-          },
-          users() {
-            return Array.isArray(this.matrix?.users) ? this.matrix.users : [];
-          },
-          permissions() {
-            return Array.isArray(this.matrix?.permissions) ? this.matrix.permissions : [];
-          },
-        },
-        methods: {
-          async load() {
-            this.loading = true;
-            this.error = '';
-
-            const response = await listPermisosMatrix();
-            const envelope = response.data || {};
-            this.loading = false;
-
-            if (!response.ok || envelope.status !== 'success') {
-              this.error = envelope.message || 'No fue posible cargar la matriz de permisos.';
-              this.matrix = null;
-              return;
-            }
-
-            this.matrix = envelope.data || null;
-          },
-          roleAllowed(roleId, action) {
-            const roleMap = this.matrix?.role_matrix?.[roleId] || {};
-            return Boolean(roleMap?.[action]);
-          },
-          userEffective(userId, action) {
-            const map = this.matrix?.effective_matrix?.[userId] || {};
-            return Boolean(map?.[action]);
-          },
-          async toggleRole(roleId, action, event) {
-            const enabled = Boolean(event?.target?.checked);
-            const response = await updatePermiso({
-              scope: 'role',
-              roleId,
-              action,
-              enabled,
-            });
-            const envelope = response.data || {};
-
-            if (!response.ok || envelope.status !== 'success') {
-              showToast('error', envelope.message || 'No fue posible actualizar permiso de rol.');
-              await this.load();
-              return;
-            }
-
-            showToast('success', 'Permiso por rol actualizado.');
-            await this.load();
-          },
-          async toggleUser(userId, action, event) {
-            const enabled = Boolean(event?.target?.checked);
-            const response = await updatePermiso({
-              scope: 'user',
-              userId,
-              action,
-              enabled,
-            });
-            const envelope = response.data || {};
-
-            if (!response.ok || envelope.status !== 'success') {
-              showToast('error', envelope.message || 'No fue posible actualizar permiso de usuario.');
-              await this.load();
-              return;
-            }
-
-            showToast('success', 'Permiso por usuario actualizado.');
-            await this.load();
-            await loadUsuarios();
-          },
-        },
-        mounted() {
-          this.load();
-        },
-        template: `
-          <div>
-            <p v-if="loading" class="muted-text">Cargando matriz...</p>
-            <p v-if="error" class="muted-text" style="color:#9b2d2d">{{ error }}</p>
-            <div v-if="matrix">
-              <h4 class="card-title" style="margin-top:0.2rem;">Permisos por rol</h4>
-              <div class="table-wrapper" style="margin-bottom:0.9rem;">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Rol</th>
-                      <th v-for="perm in permissions" :key="'role-col-' + perm.action">{{ perm.action }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="role in roles" :key="'role-row-' + role.id">
-                      <td>{{ role.name }}</td>
-                      <td v-for="perm in permissions" :key="'role-cell-' + role.id + '-' + perm.action">
-                        <input
-                          type="checkbox"
-                          :checked="roleAllowed(role.id, perm.action)"
-                          @change="toggleRole(role.id, perm.action, $event)"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <h4 class="card-title">Matriz Usuarios vs Permisos</h4>
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Rol</th>
-                      <th v-for="perm in permissions" :key="'usr-col-' + perm.action">{{ perm.action }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="user in users" :key="'usr-row-' + user.id">
-                      <td>{{ user.name }}</td>
-                      <td>{{ user.role_name }}</td>
-                      <td v-for="perm in permissions" :key="'usr-cell-' + user.id + '-' + perm.action">
-                        <input
-                          type="checkbox"
-                          :checked="userEffective(user.id, perm.action)"
-                          @change="toggleUser(user.id, perm.action, $event)"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        `,
-      }).mount(refs.rbacVueRoot);
-    };
-
     const clearDocForm = () => {
       refs.docForm.reset();
       refs.docEditId.value = '';
@@ -770,24 +727,6 @@
       showSection('documentos');
     };
 
-    const openCertAuthModal = (docId, action, title = 'Autorizar acción restringida') => {
-      refs.certAuthDocumentId.value = String(docId);
-      refs.certAuthAction.value = String(action);
-      refs.certAuthTitle.textContent = title;
-      refs.certAuthSubtitle.textContent = 'Carga tu certificado público (.cer) y tu llave privada (.key).';
-      refs.certAuthForm.reset();
-      refs.certAuthModal.classList.remove('hidden-section');
-      refs.certAuthModal.setAttribute('aria-hidden', 'false');
-    };
-
-    const closeCertAuthModal = () => {
-      refs.certAuthForm.reset();
-      refs.certAuthModal.classList.add('hidden-section');
-      refs.certAuthModal.setAttribute('aria-hidden', 'true');
-      refs.certAuthDocumentId.value = '';
-      refs.certAuthAction.value = 'approve_document';
-    };
-
     const loadDocumentos = async () => {
       refs.docsTbody.innerHTML = '<tr class="skeleton-row"><td colspan="6"><span class="skeleton-block" style="width: 100%"></span></td></tr>';
 
@@ -795,7 +734,7 @@
       const envelope = response.data || {};
       if (!response.ok || envelope.status !== 'success') {
         state.documentos = [];
-        renderSummary({ total: 0, emitidos: 0, aprobados: 0, borradores: 0, revocados: 0 });
+        renderSummary({ total: 0, emitidos: 0, borradores: 0, revocados: 0 });
         renderDocumentRows();
         showToast('error', envelope.message || 'No fue posible cargar documentos.');
         return;
@@ -840,7 +779,7 @@
     };
 
     const showSection = (name) => {
-      ['overview', 'documentos', 'usuarios', 'bitacora'].forEach((section) => {
+      ['overview', 'documentos', 'usuarios', 'bitacora', 'permisos'].forEach((section) => {
         const node = document.getElementById(`section-${section}`);
         if (node) {
           node.classList.toggle('hidden-section', section !== name);
@@ -850,6 +789,10 @@
       document.querySelectorAll('.sidebar-menu a').forEach((link) => {
         link.classList.toggle('active', link.dataset.section === name);
       });
+
+      if (name === 'permisos' && canManagePermissions()) {
+        loadPermissionsMatrix();
+      }
     };
 
     const applyRoleView = () => {
@@ -858,7 +801,7 @@
       refs.userRolePill.className = `role-pill ${roleClass(role)}`;
       refs.userName.textContent = state.user?.nombre || state.user?.email || 'Usuario autenticado';
 
-      if (!canManageUsers() && !canManageRbac()) {
+      if (!canManageUsers()) {
         refs.navUsuarios.classList.add('hidden-inline');
         refs.sectionUsuarios.classList.add('hidden-section');
       }
@@ -868,12 +811,13 @@
         refs.sectionBitacora.classList.add('hidden-section');
       }
 
-      if (!canRunTestingMatrix()) {
-        refs.navTestingMatrix.classList.add('hidden-inline');
-      }
-
       if (!canManageDocuments()) {
         refs.docFormCard.classList.add('hidden-section');
+      }
+
+      if (!canManagePermissions()) {
+        refs.navPermisos.classList.add('hidden-inline');
+        refs.sectionPermisos.classList.add('hidden-section');
       }
     };
 
@@ -881,8 +825,9 @@
       button.addEventListener('click', (event) => {
         event.preventDefault();
         const next = button.dataset.section;
-        if (next === 'usuarios' && !canManageUsers() && !canManageRbac()) return;
+        if (next === 'usuarios' && !canManageUsers()) return;
         if (next === 'bitacora' && !canViewBitacora()) return;
+        if (next === 'permisos' && !canManagePermissions()) return;
         showSection(next);
       });
     });
@@ -897,56 +842,12 @@
     document.getElementById('btn-refresh-docs').addEventListener('click', loadDocumentos);
     document.getElementById('btn-refresh-users').addEventListener('click', loadUsuarios);
     document.getElementById('btn-refresh-bitacora').addEventListener('click', loadBitacora);
+    document.getElementById('btn-refresh-permisos').addEventListener('click', () => loadPermissionsMatrix());
 
     document.getElementById('btn-apply-filters').addEventListener('click', async () => {
       state.filters.q = document.getElementById('filter-docs').value.trim();
       state.filters.estado = document.getElementById('filter-estado').value;
       await loadDocumentos();
-    });
-
-    refs.certAuthCancel.addEventListener('click', closeCertAuthModal);
-    refs.certAuthModal.addEventListener('click', (event) => {
-      if (event.target === refs.certAuthModal) {
-        closeCertAuthModal();
-      }
-    });
-
-    refs.certAuthForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const documentId = Number(refs.certAuthDocumentId.value || 0);
-      const action = String(refs.certAuthAction.value || 'approve_document');
-      const cerFile = refs.certFileInput.files?.[0] || null;
-      const keyFile = refs.keyFileInput.files?.[0] || null;
-      const keyPassword = refs.keyPasswordInput.value || '';
-
-      if (!documentId || !cerFile || !keyFile) {
-        showToast('error', 'Debes cargar .cer y .key para autorizar la acción.');
-        return;
-      }
-
-      setButtonBusy(refs.certAuthConfirm, true);
-      const response = await authorizeDocumentoAction({
-        documentId,
-        action,
-        cerFile,
-        keyFile,
-        keyPassword,
-      });
-      const envelope = response.data || {};
-      setButtonBusy(refs.certAuthConfirm, false, 'Autorizar');
-
-      if (!response.ok || envelope.status !== 'success') {
-        showToast('error', envelope.message || 'No fue posible autorizar la acción con certificados.');
-        return;
-      }
-
-      closeCertAuthModal();
-      showToast('success', envelope.message || 'Autorización criptográfica válida.');
-      await loadDocumentos();
-      if (canViewBitacora()) {
-        await loadBitacora();
-      }
     });
 
     refs.docCancelEdit.addEventListener('click', clearDocForm);
@@ -1006,15 +907,6 @@
 
       if (action === 'editar') {
         fillDocFormForEdit(doc);
-        return;
-      }
-
-      if (action === 'autorizar') {
-        const authAction = String(target.dataset.authAction || 'approve_document');
-        const title = authAction === 'approve_document'
-          ? `Aprobar ${doc.folio} con .cer/.key`
-          : `Autorizar ${doc.folio} con .cer/.key`;
-        openCertAuthModal(id, authAction, title);
         return;
       }
 
@@ -1080,16 +972,6 @@
 
       refs.userForm.reset();
       showToast('success', envelope.message || 'Usuario registrado.');
-
-      const keyDelivery = envelope.data?.user?.key_delivery || envelope.data?.key_delivery;
-      if (keyDelivery?.download_token) {
-        const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
-        window.prompt(
-          'Token one-time generado. Comparte este enlace seguro con la persona usuaria (se invalida al descargar o en 24h):',
-          oneTimeUrl
-        );
-      }
-
       await loadUsuarios();
       await loadBitacora();
     });
@@ -1098,8 +980,8 @@
       const target = event.target.closest('button[data-user-action]');
       if (!target) return;
 
-      const action = String(target.dataset.userAction || '');
-      const id = Number(target.dataset.id || 0);
+      const action = target.dataset.userAction;
+      const id = Number(target.dataset.id);
       if (!id) return;
 
       if (action === 'desactivar') {
@@ -1118,24 +1000,27 @@
 
         showToast('success', envelope.message || 'Usuario desactivado.');
         await loadUsuarios();
-        if (canViewBitacora()) {
-          await loadBitacora();
-        }
-        return;
+        await loadBitacora();
       }
 
       if (action === 'cambiar-rol') {
-        const rolActual = String(target.dataset.rol || ROLE_VOLUNTARIO).toLowerCase();
-        const validRoles = [ROLE_VOLUNTARIO, ROLE_OPERATIVO, ROLE_COORDINADOR, ROLE_ADMIN];
-        const promptValue = window.prompt(
-          `Rol actual: ${roleLabel(rolActual)}\n\nNuevo rol (admin/coordinador/operativo/voluntario):`,
+        const rolActual = target.dataset.rol || 'consultor';
+        const roles = ['consultor', 'verificador', 'emisor', 'supervisor', 'administrador'];
+        const opcionesStr = roles.map((r, i) => `${i + 1}. ${roleLabel(r)}`).join('\n');
+        const input = window.prompt(
+          `Rol actual: ${roleLabel(rolActual)}\n\nSelecciona nuevo rol:\n${opcionesStr}\n\nEscribe el nombre del rol:`,
           rolActual
         );
+        if (!input) return;
 
-        if (!promptValue) return;
-        const nuevoRol = String(promptValue).trim().toLowerCase();
-        if (!validRoles.includes(nuevoRol)) {
-          showToast('error', 'Rol invalido.');
+        const nuevoRol = input.trim().toLowerCase();
+        if (!roles.includes(nuevoRol)) {
+          showToast('error', `Rol "${nuevoRol}" no válido. Opciones: ${roles.join(', ')}`);
+          return;
+        }
+
+        if (nuevoRol === rolActual) {
+          showToast('error', 'El rol seleccionado es el mismo que el actual.');
           return;
         }
 
@@ -1149,50 +1034,206 @@
           return;
         }
 
-        const keyDelivery = envelope.data?.key_delivery;
-        if (keyDelivery?.download_token) {
-          const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
-          window.prompt('Se generó un nuevo token one-time para llaves:', oneTimeUrl);
-        }
-
-        showToast('success', envelope.message || 'Rol actualizado.');
+        showToast('success', envelope.message || `Rol cambiado a ${roleLabel(nuevoRol)}.`);
         await loadUsuarios();
-        if (canViewBitacora()) {
-          await loadBitacora();
-        }
+        await loadBitacora();
+      }
+    });
+
+    // ─────────────────────────────────────────────────────
+    // Permissions Matrix — Load & Render with Toggle Switches
+    // ─────────────────────────────────────────────────────
+
+    const loadPermissionsMatrix = async () => {
+      if (!canManagePermissions()) return;
+
+      refs.permisosTbody.innerHTML = '<tr><td colspan="20" style="text-align:center;padding:1.5rem;">Cargando...</td></tr>';
+
+      const response = await getPermissionsMatrix();
+      const envelope = response.data || {};
+
+      if (!response.ok || envelope.status !== 'success') {
+        refs.permisosTbody.innerHTML = '<tr class="empty-row"><td colspan="20">No fue posible cargar la matriz de permisos.</td></tr>';
+        showToast('error', envelope.message || 'Error al cargar permisos.');
         return;
       }
 
-      if (action === 'regenerar-cert') {
-        const reason = window.prompt(
-          'Motivo de regeneración/revocación del certificado:',
-          'Reposicion de llave privada extraviada.'
-        );
-        if (reason === null) return;
+      const matrix = envelope.data || {};
+      const permissions = Array.isArray(matrix.permissions) ? matrix.permissions : [];
+      const users = Array.isArray(matrix.users) ? matrix.users : [];
+      const effectiveMatrix = matrix.effective_matrix || {};
+      const userOverrides = matrix.user_overrides || {};
+      const roleMatrix = matrix.role_matrix || {};
 
-        setButtonBusy(target, true);
-        const response = await regenerarCertificadoUsuario(id, reason || 'Regeneracion administrativa.');
-        const envelope = response.data || {};
-        setButtonBusy(target, false, 'Regenerar cert');
+      // Build header
+      let headerHtml = '<tr><th>Usuario</th><th>Rol</th>';
+      permissions.forEach((perm) => {
+        headerHtml += `<th title="${escapeHtml(perm.description || perm.action)}" style="font-size:0.72rem;writing-mode:vertical-rl;text-orientation:mixed;padding:0.5rem 0.35rem;min-width:38px;">${escapeHtml(perm.action)}</th>`;
+      });
+      headerHtml += '</tr>';
+      refs.permisosThead.innerHTML = headerHtml;
 
-        if (!response.ok || envelope.status !== 'success') {
-          showToast('error', envelope.message || 'No fue posible regenerar certificado.');
-          return;
-        }
+      // Build rows
+      if (!users.length) {
+        refs.permisosTbody.innerHTML = '<tr class="empty-row"><td colspan="20">Sin usuarios.</td></tr>';
+        return;
+      }
 
-        const keyDelivery = envelope.data?.key_delivery;
-        if (keyDelivery?.download_token) {
-          const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
-          window.prompt('Nuevo enlace one-time para descarga de llaves:', oneTimeUrl);
-        }
+      let bodyHtml = '';
+      users.forEach((user) => {
+        bodyHtml += '<tr>';
+        bodyHtml += `<td style="white-space:nowrap;font-weight:500;">${escapeHtml(user.name || '')} <br/><small style="color:var(--muted);font-weight:400;">${escapeHtml(user.email)}</small></td>`;
+        bodyHtml += `<td>${escapeHtml(roleLabel(String(user.role_name || '').toLowerCase()))}</td>`;
 
-        showToast('success', envelope.message || 'Certificado regenerado correctamente.');
-        await loadUsuarios();
-        if (canViewBitacora()) {
-          await loadBitacora();
-        }
+        permissions.forEach((perm) => {
+          const effective = effectiveMatrix[user.id] || {};
+          const isAllowed = !!effective[perm.action];
+          const hasOverride = userOverrides[user.id] && (perm.action in (userOverrides[user.id] || {}));
+          const overrideVal = hasOverride ? userOverrides[user.id][perm.action] : null;
+          const fromRole = !!(roleMatrix[user.role_id] || {})[perm.action];
+
+          const switchId = `perm-switch-${user.id}-${perm.action}`;
+          const checkedAttr = isAllowed ? 'checked' : '';
+          const title = isAllowed ? 'Permitido' : 'Denegado';
+          const overrideLabel = hasOverride ? (overrideVal ? ' (override ✔)' : ' (override ✘)') : (fromRole ? ' (por rol)' : '');
+
+          bodyHtml += `<td style="text-align:center;" title="${title}${overrideLabel}">`;
+          bodyHtml += `<label class="toggle-switch" style="display:inline-block;">`;
+          bodyHtml += `<input type="checkbox" id="${switchId}" ${checkedAttr} data-user-id="${user.id}" data-action="${perm.action}" class="perm-toggle" />`;
+          bodyHtml += `<span class="toggle-slider"></span>`;
+          bodyHtml += `</label>`;
+          bodyHtml += `</td>`;
+        });
+
+        bodyHtml += '</tr>';
+      });
+      refs.permisosTbody.innerHTML = bodyHtml;
+
+      // Attach toggle listeners
+      refs.permisosTbody.querySelectorAll('.perm-toggle').forEach((input) => {
+        input.addEventListener('change', async (e) => {
+          const userId = Number(e.target.dataset.userId);
+          const action = e.target.dataset.action;
+          const enabled = e.target.checked;
+
+          e.target.disabled = true;
+          const res = await updatePermission('user', { user_id: userId, action, enabled });
+          e.target.disabled = false;
+
+          const env = res.data || {};
+          if (!res.ok || env.status !== 'success') {
+            e.target.checked = !enabled; // revert
+            showToast('error', env.message || 'Error al actualizar permiso.');
+          } else {
+            showToast('success', `Permiso "${action}" ${enabled ? 'activado' : 'desactivado'}.`);
+          }
+        });
+      });
+    };
+
+    // ─────────────────────────────────────────────────────
+    // Certificate Authorization Modal
+    // ─────────────────────────────────────────────────────
+
+    const openCertModal = (documentId, action) => {
+      refs.certDocId.value = String(documentId);
+      refs.certAction.value = action;
+      refs.certForm.reset();
+      refs.certDocId.value = String(documentId);
+      refs.certAction.value = action;
+      refs.certAuthError.classList.add('hidden');
+
+      const actionLabels = {
+        approve_document: 'Aprobar documento',
+        emit_document: 'Emitir documento',
+        revoke_document: 'Revocar documento',
+      };
+      refs.certModal.querySelector('#cert-modal-title').textContent =
+        `Autorización: ${actionLabels[action] || action}`;
+
+      refs.certRevokeReasonField.style.display =
+        (action === 'revoke_document' || action === 'revoke') ? 'block' : 'none';
+
+      refs.certModal.style.display = 'flex';
+    };
+
+    const closeCertModal = () => {
+      refs.certModal.style.display = 'none';
+      refs.certForm.reset();
+      refs.certAuthError.classList.add('hidden');
+    };
+
+    refs.certCancel.addEventListener('click', closeCertModal);
+    refs.certModal.addEventListener('click', (e) => {
+      if (e.target === refs.certModal) closeCertModal();
+    });
+
+    refs.certForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      refs.certAuthError.classList.add('hidden');
+
+      const cerFile = refs.certCerFile.files[0];
+      const keyFile = refs.certKeyFile.files[0];
+
+      if (!cerFile || !keyFile) {
+        refs.certAuthError.textContent = 'Debes seleccionar ambos archivos (.cer y .key).';
+        refs.certAuthError.classList.remove('hidden');
+        return;
+      }
+
+      setButtonBusy(refs.certSubmit, true);
+
+      const response = await authorizeDocumentAction({
+        documentId: Number(refs.certDocId.value),
+        action: refs.certAction.value,
+        cerFile,
+        keyFile,
+        keyPassword: refs.certKeyPassword.value,
+        revokeReason: refs.certRevokeReason.value,
+      });
+
+      setButtonBusy(refs.certSubmit, false, 'Autorizar');
+      const envelope = response.data || {};
+
+      if (!response.ok || envelope.status !== 'success') {
+        refs.certAuthError.textContent = envelope.message || 'Autorización fallida.';
+        refs.certAuthError.classList.remove('hidden');
+        return;
+      }
+
+      closeCertModal();
+      showToast('success', envelope.message || 'Acción autorizada con certificado.');
+      await loadDocumentos();
+      if (canViewBitacora()) await loadBitacora();
+    });
+
+    // Override document action buttons to use cert modal for approve/emit/revoke
+    refs.docsTbody.addEventListener('click', async (event) => {
+      const certTarget = event.target.closest('button[data-action="aprobar-cert"]');
+      if (certTarget) {
+        const id = Number(certTarget.dataset.id);
+        if (id) openCertModal(id, 'approve_document');
+        return;
+      }
+
+      const emitCertTarget = event.target.closest('button[data-action="emitir-cert"]');
+      if (emitCertTarget) {
+        const id = Number(emitCertTarget.dataset.id);
+        if (id) openCertModal(id, 'emit_document');
+        return;
+      }
+
+      const revokeCertTarget = event.target.closest('button[data-action="revocar-cert"]');
+      if (revokeCertTarget) {
+        const id = Number(revokeCertTarget.dataset.id);
+        if (id) openCertModal(id, 'revoke_document');
+        return;
       }
     });
+
+    // ─────────────────────────────────────────────────────
+    // Init
+    // ─────────────────────────────────────────────────────
 
     const sessionResponse = await fetchSession();
     if (!sessionResponse.ok || sessionResponse.data?.status !== 'success') {
@@ -1209,7 +1250,6 @@
     applyRoleView();
     showSection('overview');
     clearDocForm();
-    mountRbacVueApp();
 
     await loadDocumentos();
     if (canManageUsers()) {
@@ -1221,3 +1261,4 @@
   </script>
 </body>
 </html>
+

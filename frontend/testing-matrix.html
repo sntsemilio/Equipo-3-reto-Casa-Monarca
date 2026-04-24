@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casa Monarca | Matriz de Comprobación RBAC</title>
+  <meta name="description" content="Matriz de comprobación de permisos RBAC para pruebas internas del sistema Casa Monarca." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .tm-layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .tm-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .tm-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .tm-header .tm-subtitle {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    .tm-header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .tm-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .tm-table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tm-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.85rem;
+    }
+    .tm-table th,
+    .tm-table td {
+      padding: 0.7rem 0.8rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .tm-table th {
+      background: var(--tint);
+      font-weight: 600;
+      color: var(--ink);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .tm-table th:first-child,
+    .tm-table td:first-child {
+      text-align: left;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+      min-width: 180px;
+      font-weight: 600;
+    }
+    .tm-table th:first-child {
+      z-index: 3;
+      background: var(--tint);
+    }
+    .tm-table th.action-col {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      padding: 0.6rem 0.5rem;
+      min-width: 44px;
+      max-width: 54px;
+      font-size: 0.78rem;
+      letter-spacing: 0.3px;
+    }
+    .tm-cell-check {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .tm-cell-check:hover {
+      transform: scale(1.15);
+    }
+    .tm-allowed {
+      background: #10b981;
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(16,185,129,0.35);
+    }
+    .tm-denied {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(239,68,68,0.35);
+    }
+    .tm-pending {
+      background: var(--border);
+      color: var(--muted);
+    }
+    .tm-error {
+      background: #f59e0b;
+      color: #fff;
+    }
+    .tm-user-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .tm-summary {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .tm-summary-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .tm-legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .tm-progress {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .tm-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+    @keyframes tmPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .tm-running {
+      animation: tmPulse 1.2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-brand">
+      <div class="logo-seal">CM</div>
+      <div>
+        <p class="header-kicker">Casa Monarca</p>
+        <h1>Matriz de Comprobación</h1>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <span id="user-role-pill" class="role-pill">ROL</span>
+      <span id="user-name" class="header-user"></span>
+      <a href="dashboard.html">← Panel</a>
+      <a href="#" id="btn-logout">Cerrar sesión</a>
+    </nav>
+  </header>
+
+  <div class="tm-layout">
+    <div class="tm-header">
+      <div>
+        <h1 id="tm-page-title">Matriz de Comprobación RBAC</h1>
+        <p class="tm-subtitle">Cada celda hace ping al endpoint <code>dev-permission-probe</code> y muestra ✔ (acceso) o ✘ (rechazado) en tiempo real.</p>
+      </div>
+      <div class="tm-header-actions">
+        <button id="btn-run-matrix" class="btn btn-primary" type="button">▶ Ejecutar pruebas</button>
+        <button id="btn-back-dashboard" class="btn btn-outline" type="button" onclick="window.location.href='dashboard.html'">← Volver al panel</button>
+      </div>
+    </div>
+
+    <div id="tm-progress-wrapper" class="tm-progress" style="display:none;">
+      <div id="tm-progress-bar" class="tm-progress-bar" style="width:0%"></div>
+    </div>
+    <p id="tm-status" class="muted-text" style="margin-bottom:1rem;"></p>
+
+    <div class="tm-card">
+      <div class="tm-table-wrapper">
+        <table id="tm-table" class="tm-table">
+          <thead id="tm-thead">
+            <tr>
+              <th>Usuario</th>
+            </tr>
+          </thead>
+          <tbody id="tm-tbody">
+            <tr><td colspan="20" style="text-align:center;padding:2rem;color:var(--muted);">Presiona "Ejecutar pruebas" para comenzar.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tm-summary" id="tm-summary" style="display:none;">
+        <div class="tm-summary-item">
+          <span class="tm-legend-dot" style="background:#10b981;"></span>
+          <span id="tm-count-allowed">0</span> permitidos
+        </div>
+        <div class="tm-summary-item">
+          <span class="tm-legend-dot" style="background:#ef4444;"></span>
+          <span id="tm-count-denied">0</span> denegados
+        </div>
+        <div class="tm-summary-item">
+          <span class="tm-legend-dot" style="background:#f59e0b;"></span>
+          <span id="tm-count-error">0</span> errores
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      fetchSession,
+      getCurrentUser,
+      logout,
+      listUsuarios,
+      probePermission,
+    } from './js/api.js';
+
+    // ── All system permission actions ──
+    const PERMISSION_ACTIONS = [
+      'manage_users',
+      'manage_role_permissions',
+      'manage_user_permissions',
+      'view_dashboard',
+      'view_documents',
+      'approve_documents',
+      'sign_documents',
+      'revoke_documents',
+      'view_audit_log',
+      'download_keys',
+      'run_testing_matrix',
+    ];
+
+    const ACTION_LABELS = {
+      manage_users: 'Gestionar usuarios',
+      manage_role_permissions: 'Permisos por rol',
+      manage_user_permissions: 'Permisos por usuario',
+      view_dashboard: 'Ver dashboard',
+      view_documents: 'Ver documentos',
+      approve_documents: 'Aprobar documentos',
+      sign_documents: 'Firmar documentos',
+      revoke_documents: 'Revocar documentos',
+      view_audit_log: 'Ver bitácora',
+      download_keys: 'Descargar llaves',
+      run_testing_matrix: 'Matriz de pruebas',
+    };
+
+    const roleLabel = (role) => {
+      const map = {
+        admin: 'Admin',
+        coordinador: 'Coordinador',
+        operativo: 'Operativo',
+        voluntario: 'Voluntario',
+        administrador: 'Admin',
+        supervisor: 'Coordinador',
+        emisor: 'Operativo',
+        verificador: 'Voluntario',
+        consultor: 'Voluntario',
+      };
+      return map[String(role).toLowerCase()] || role;
+    };
+
+    const refs = {
+      thead: document.getElementById('tm-thead'),
+      tbody: document.getElementById('tm-tbody'),
+      runBtn: document.getElementById('btn-run-matrix'),
+      progressWrapper: document.getElementById('tm-progress-wrapper'),
+      progressBar: document.getElementById('tm-progress-bar'),
+      status: document.getElementById('tm-status'),
+      summary: document.getElementById('tm-summary'),
+      countAllowed: document.getElementById('tm-count-allowed'),
+      countDenied: document.getElementById('tm-count-denied'),
+      countError: document.getElementById('tm-count-error'),
+      rolePill: document.getElementById('user-role-pill'),
+      userName: document.getElementById('user-name'),
+    };
+
+    // ── Build table header ──
+    const buildHeader = () => {
+      const tr = document.createElement('tr');
+      const thUser = document.createElement('th');
+      thUser.textContent = 'Usuario';
+      tr.appendChild(thUser);
+
+      PERMISSION_ACTIONS.forEach((action) => {
+        const th = document.createElement('th');
+        th.className = 'action-col';
+        th.textContent = ACTION_LABELS[action] || action;
+        th.title = action;
+        tr.appendChild(th);
+      });
+
+      refs.thead.innerHTML = '';
+      refs.thead.appendChild(tr);
+    };
+
+    // ── Build table rows with pending cells ──
+    const buildRows = (users) => {
+      refs.tbody.innerHTML = '';
+
+      users.forEach((user) => {
+        const tr = document.createElement('tr');
+        tr.id = `tm-row-${user.id}`;
+
+        const tdUser = document.createElement('td');
+        tdUser.innerHTML = `
+          ${escapeHtml(user.nombre || user.name || '')}
+          <br/>
+          <span class="tm-user-meta">${escapeHtml(user.email)} · ${escapeHtml(roleLabel(user.rol_nombre || user.role_name || ''))}</span>
+        `;
+        tr.appendChild(tdUser);
+
+        PERMISSION_ACTIONS.forEach((action) => {
+          const td = document.createElement('td');
+          td.id = `tm-cell-${user.id}-${action}`;
+          td.innerHTML = '<span class="tm-cell-check tm-pending">…</span>';
+          tr.appendChild(td);
+        });
+
+        refs.tbody.appendChild(tr);
+      });
+    };
+
+    const escapeHtml = (value = '') =>
+      String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    // ── Run all probes ──
+    const runMatrix = async (users) => {
+      const totalProbes = users.length * PERMISSION_ACTIONS.length;
+      let completed = 0;
+      let allowed = 0;
+      let denied = 0;
+      let errors = 0;
+
+      refs.progressWrapper.style.display = 'block';
+      refs.progressBar.style.width = '0%';
+      refs.status.textContent = `Ejecutando 0 / ${totalProbes} pruebas...`;
+      refs.status.classList.add('tm-running');
+      refs.summary.style.display = 'none';
+      refs.runBtn.disabled = true;
+      refs.runBtn.textContent = '⏳ Ejecutando...';
+
+      // Fire probes in parallel per user (serial across users for readability).
+      for (const user of users) {
+        const probePromises = PERMISSION_ACTIONS.map(async (action) => {
+          const cellId = `tm-cell-${user.id}-${action}`;
+          const td = document.getElementById(cellId);
+
+          try {
+            const result = await probePermission(user.id, action);
+            const envelope = result.data || {};
+            const isAllowed = result.ok && envelope.data?.allowed === true;
+
+            if (isAllowed) {
+              allowed++;
+              if (td) td.innerHTML = '<span class="tm-cell-check tm-allowed" title="Permitido">✔</span>';
+            } else {
+              denied++;
+              if (td) td.innerHTML = '<span class="tm-cell-check tm-denied" title="Denegado">✘</span>';
+            }
+          } catch (err) {
+            errors++;
+            if (td) td.innerHTML = '<span class="tm-cell-check tm-error" title="Error">⚠</span>';
+          }
+
+          completed++;
+          const pct = Math.round((completed / totalProbes) * 100);
+          refs.progressBar.style.width = `${pct}%`;
+          refs.status.textContent = `Ejecutando ${completed} / ${totalProbes} pruebas...`;
+        });
+
+        await Promise.all(probePromises);
+      }
+
+      refs.status.classList.remove('tm-running');
+      refs.status.textContent = `Completado: ${totalProbes} pruebas ejecutadas.`;
+      refs.progressBar.style.width = '100%';
+      refs.summary.style.display = 'flex';
+      refs.countAllowed.textContent = String(allowed);
+      refs.countDenied.textContent = String(denied);
+      refs.countError.textContent = String(errors);
+      refs.runBtn.disabled = false;
+      refs.runBtn.textContent = '▶ Re-ejecutar pruebas';
+    };
+
+    // ── Init ──
+    document.getElementById('btn-logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await logout();
+      window.location.href = 'index.html';
+    });
+
+    const sessionRes = await fetchSession();
+    if (!sessionRes.ok || sessionRes.data?.status !== 'success') {
+      window.location.href = 'index.html';
+      throw new Error('Sesión no autorizada.');
+    }
+
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      window.location.href = 'index.html';
+      throw new Error('Sesión inválida.');
+    }
+
+    refs.userName.textContent = currentUser.nombre || currentUser.email || '';
+    refs.rolePill.textContent = roleLabel(currentUser.role_name || currentUser.rol_nombre || '');
+
+    // Load users for the matrix.
+    const usersRes = await listUsuarios();
+    const usersEnvelope = usersRes.data || {};
+    let testUsers = [];
+
+    if (usersRes.ok && usersEnvelope.status === 'success') {
+      testUsers = Array.isArray(usersEnvelope.data?.usuarios) ? usersEnvelope.data.usuarios : [];
+    }
+
+    if (testUsers.length === 0) {
+      refs.tbody.innerHTML = '<tr><td colspan="20" style="text-align:center;padding:2rem;color:var(--muted);">No se encontraron usuarios. Asegúrate de estar autenticado como Admin.</td></tr>';
+    } else {
+      buildHeader();
+      buildRows(testUsers);
+    }
+
+    refs.runBtn.addEventListener('click', () => {
+      if (testUsers.length > 0) {
+        buildRows(testUsers);
+        runMatrix(testUsers);
+      }
+    });
+
+    // Auto-run on load.
+    if (testUsers.length > 0) {
+      runMatrix(testUsers);
+    }
+  </script>
+</body>
+</html>
