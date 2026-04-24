@@ -34,6 +34,7 @@
         <li><a href="#" data-section="documentos">Documentos</a></li>
         <li><a id="nav-usuarios" href="#" data-section="usuarios">Usuarios</a></li>
         <li><a id="nav-bitacora" href="#" data-section="bitacora">Bitácora</a></li>
+        <li><a id="nav-testing-matrix" href="dev/testing-matrix.html" target="_blank" rel="noopener">Testing Matrix</a></li>
       </ul>
     </aside>
 
@@ -119,6 +120,7 @@
             <select id="filter-estado" class="form-control">
               <option value="">Todos los estados</option>
               <option value="borrador">Borrador</option>
+              <option value="aprobado">Aprobado</option>
               <option value="emitido">Emitido</option>
               <option value="revocado">Revocado</option>
             </select>
@@ -168,15 +170,16 @@
 
             <div class="form-field">
               <label for="user-password-input">Contraseña</label>
-              <input id="user-password-input" class="form-control" type="password" minlength="8" required />
+              <input id="user-password-input" class="form-control" type="password" minlength="10" required />
             </div>
 
             <div class="form-field">
               <label for="user-role-input">Rol</label>
               <select id="user-role-input" class="form-control" required>
-                <option value="consultor">Consultor</option>
-                <option value="emisor">Emisor</option>
-                <option value="administrador">Administrador</option>
+                <option value="voluntario">Voluntario</option>
+                <option value="operativo">Operativo</option>
+                <option value="coordinador">Coordinador</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
 
@@ -204,6 +207,12 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Matriz de permisos dinámica (Vue)</h3>
+          <p class="muted-text" style="margin-bottom:0.8rem;">Admin puede activar/desactivar permisos por rol y por usuario en tiempo real.</p>
+          <div id="rbac-vue-root"></div>
         </div>
       </section>
 
@@ -238,6 +247,40 @@
 
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+  <div id="cert-auth-modal" class="modal-backdrop hidden-section" aria-hidden="true">
+    <div class="modal-card">
+      <h3 class="card-title" id="cert-auth-title">Autorizar acción restringida</h3>
+      <p class="muted-text" id="cert-auth-subtitle">Carga tu .cer y .key para validar la acción.</p>
+
+      <form id="cert-auth-form" class="inline-form" style="grid-template-columns:1fr; margin-top:0.6rem;">
+        <input id="cert-auth-document-id" type="hidden" value="" />
+        <input id="cert-auth-action" type="hidden" value="approve_document" />
+
+        <div class="form-field">
+          <label for="cert-file-input">Archivo .cer</label>
+          <input id="cert-file-input" class="form-control" type="file" accept=".cer,.pem,.crt" required />
+        </div>
+
+        <div class="form-field">
+          <label for="key-file-input">Archivo .key</label>
+          <input id="key-file-input" class="form-control" type="file" accept=".key,.pem" required />
+        </div>
+
+        <div class="form-field">
+          <label for="key-password-input">Password de llave privada (opcional)</label>
+          <input id="key-password-input" class="form-control" type="password" placeholder="Si tu .key está cifrada" />
+        </div>
+
+        <div class="form-actions">
+          <button id="btn-cert-auth-confirm" class="btn btn-primary" type="submit">Autorizar</button>
+          <button id="btn-cert-auth-cancel" class="btn btn-outline" type="button">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
   <script type="module">
     import {
       fetchSession,
@@ -249,14 +292,22 @@
       deleteDocumento,
       emitirDocumento,
       revocarDocumento,
+      authorizeDocumentoAction,
       listBitacora,
       listUsuarios,
       register,
       desactivarUsuario,
+      cambiarRolUsuario,
+      regenerarCertificadoUsuario,
+      listPermisosMatrix,
+      updatePermiso,
+      buildOneTimeDownloadUrl,
     } from './js/api.js';
 
-    const ROLE_ADMIN = 'administrador';
-    const ROLE_EMISOR = 'emisor';
+    const ROLE_ADMIN = 'admin';
+    const ROLE_COORDINADOR = 'coordinador';
+    const ROLE_OPERATIVO = 'operativo';
+    const ROLE_VOLUNTARIO = 'voluntario';
 
     const state = {
       user: null,
@@ -284,9 +335,22 @@
       userName: document.getElementById('user-name'),
       navUsuarios: document.getElementById('nav-usuarios'),
       navBitacora: document.getElementById('nav-bitacora'),
+      navTestingMatrix: document.getElementById('nav-testing-matrix'),
       sectionUsuarios: document.getElementById('section-usuarios'),
       sectionBitacora: document.getElementById('section-bitacora'),
       docFormCard: document.getElementById('doc-form-card'),
+      certAuthModal: document.getElementById('cert-auth-modal'),
+      certAuthForm: document.getElementById('cert-auth-form'),
+      certAuthTitle: document.getElementById('cert-auth-title'),
+      certAuthSubtitle: document.getElementById('cert-auth-subtitle'),
+      certAuthDocumentId: document.getElementById('cert-auth-document-id'),
+      certAuthAction: document.getElementById('cert-auth-action'),
+      certAuthConfirm: document.getElementById('btn-cert-auth-confirm'),
+      certAuthCancel: document.getElementById('btn-cert-auth-cancel'),
+      certFileInput: document.getElementById('cert-file-input'),
+      keyFileInput: document.getElementById('key-file-input'),
+      keyPasswordInput: document.getElementById('key-password-input'),
+      rbacVueRoot: document.getElementById('rbac-vue-root'),
     };
 
     const escapeHtml = (value = '') =>
@@ -299,20 +363,32 @@
 
     const roleLabel = (role) => {
       if (role === ROLE_ADMIN) return 'Administrador';
-      if (role === ROLE_EMISOR) return 'Emisor';
-      return 'Consultor';
+      if (role === ROLE_COORDINADOR) return 'Coordinador';
+      if (role === ROLE_OPERATIVO) return 'Operativo';
+      return 'Voluntario';
     };
 
     const roleClass = (role) => {
       if (role === ROLE_ADMIN) return 'role-pill-admin';
-      if (role === ROLE_EMISOR) return 'role-pill-emisor';
+      if (role === ROLE_COORDINADOR) return 'role-pill-supervisor';
+      if (role === ROLE_OPERATIVO) return 'role-pill-emisor';
       return 'role-pill-consultor';
     };
 
     const getRole = () => String(state.user?.role_name || state.user?.rol_nombre || '').toLowerCase();
-    const canManageDocuments = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
-    const canManageUsers = () => getRole() === ROLE_ADMIN;
-    const canViewBitacora = () => [ROLE_ADMIN, ROLE_EMISOR].includes(getRole());
+    const getPermissions = () => {
+      const raw = state.user?.permissions;
+      return Array.isArray(raw) ? raw.map((p) => String(p).toLowerCase()) : [];
+    };
+
+    const hasPermission = (permission) => getPermissions().includes(String(permission).toLowerCase());
+    const canManageDocuments = () => hasPermission('sign_documents');
+    const canApproveDocuments = () => hasPermission('approve_documents');
+    const canRevokeDocuments = () => hasPermission('revoke_documents');
+    const canManageUsers = () => hasPermission('manage_users');
+    const canManageRbac = () => hasPermission('manage_role_permissions') || hasPermission('manage_user_permissions');
+    const canViewBitacora = () => hasPermission('view_audit_log');
+    const canRunTestingMatrix = () => hasPermission('run_testing_matrix');
 
     const formatDate = (value) => {
       if (!value) return 'Sin dato';
@@ -355,12 +431,14 @@
     const getBadgeClass = (estado) => {
       if (estado === 'emitido') return 'badge-emitido';
       if (estado === 'revocado') return 'badge-revocado';
+      if (estado === 'aprobado') return 'badge-aprobado';
       return 'badge-borrador';
     };
 
     const getEstadoLabel = (estado) => {
       if (estado === 'emitido') return 'Emitido';
       if (estado === 'revocado') return 'Revocado';
+      if (estado === 'aprobado') return 'Aprobado';
       return 'Borrador';
     };
 
@@ -375,24 +453,41 @@
       const verifyTarget = encodeURIComponent(doc.qr_token || doc.folio || String(doc.id));
       const verifyLink = `<a class="btn btn-outline btn-sm" href="verificar.php?token=${verifyTarget}" target="_blank" rel="noopener">Verificar</a>`;
 
-      if (!canManageDocuments()) {
+      const actions = [];
+      if (!canManageDocuments() && !canApproveDocuments() && !canRevokeDocuments()) {
         return verifyLink;
       }
 
       if (doc.estado === 'borrador') {
-        return `
-          <button class="btn btn-outline btn-sm" type="button" data-action="editar" data-id="${doc.id}">Editar</button>
-          <button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>
-          <button class="btn btn-danger btn-sm" type="button" data-action="eliminar" data-id="${doc.id}">Eliminar</button>
-          ${verifyLink}
-        `;
+        if (canManageDocuments()) {
+          actions.push(`<button class="btn btn-outline btn-sm" type="button" data-action="editar" data-id="${doc.id}">Editar</button>`);
+          actions.push(`<button class="btn btn-danger btn-sm" type="button" data-action="eliminar" data-id="${doc.id}">Eliminar</button>`);
+        }
+        if (canApproveDocuments()) {
+          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="autorizar" data-auth-action="approve_document" data-id="${doc.id}">Aprobar (.cer/.key)</button>`);
+        }
+        if (canManageDocuments()) {
+          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>`);
+        }
+
+        actions.push(verifyLink);
+        return actions.join('');
+      }
+
+      if (doc.estado === 'aprobado') {
+        if (canManageDocuments()) {
+          actions.push(`<button class="btn btn-accent btn-sm" type="button" data-action="emitir" data-id="${doc.id}">Emitir</button>`);
+        }
+        actions.push(verifyLink);
+        return actions.join('');
       }
 
       if (doc.estado === 'emitido') {
-        return `
-          <button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>
-          ${verifyLink}
-        `;
+        if (canRevokeDocuments()) {
+          actions.push(`<button class="btn btn-danger btn-sm" type="button" data-action="revocar" data-id="${doc.id}">Revocar</button>`);
+        }
+        actions.push(verifyLink);
+        return actions.join('');
       }
 
       return verifyLink;
@@ -436,15 +531,29 @@
           const activoText = user.activo ? 'Activo' : 'Inactivo';
           const estadoBadge = user.activo ? 'badge-emitido' : 'badge-revocado';
           const canDeactivate = user.activo && Number(user.id) !== Number(state.user?.id);
-          const actions = canDeactivate
-            ? `<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`
+          const roleName = String(user.rol_nombre || ROLE_VOLUNTARIO).toLowerCase();
+          const canRotateKey = [ROLE_ADMIN, ROLE_COORDINADOR].includes(roleName);
+
+          const actionButtons = [];
+          if (canDeactivate) {
+            actionButtons.push(`<button class="btn btn-danger btn-sm" type="button" data-user-action="desactivar" data-id="${user.id}">Desactivar</button>`);
+          }
+          if (Number(user.id) !== Number(state.user?.id)) {
+            actionButtons.push(`<button class="btn btn-outline btn-sm" type="button" data-user-action="cambiar-rol" data-id="${user.id}" data-rol="${escapeHtml(roleName)}">Cambiar rol</button>`);
+          }
+          if (canRotateKey) {
+            actionButtons.push(`<button class="btn btn-outline btn-sm" type="button" data-user-action="regenerar-cert" data-id="${user.id}">Regenerar cert</button>`);
+          }
+
+          const actions = actionButtons.length > 0
+            ? actionButtons.join(' ')
             : '<span class="muted-text">Sin acciones</span>';
 
           return `
             <tr>
               <td>${escapeHtml(user.nombre)}</td>
               <td>${escapeHtml(user.email)}</td>
-              <td>${escapeHtml(roleLabel(String(user.rol_nombre || 'consultor').toLowerCase()))}</td>
+              <td>${escapeHtml(roleLabel(roleName))}</td>
               <td><span class="badge ${estadoBadge}">${activoText}</span></td>
               <td>${formatDate(user.ultimo_login)}</td>
               <td>${actions}</td>
@@ -477,6 +586,169 @@
         .join('');
     };
 
+    const mountRbacVueApp = () => {
+      if (!refs.rbacVueRoot) {
+        return;
+      }
+
+      if (!canManageRbac()) {
+        refs.rbacVueRoot.innerHTML = '<p class="muted-text">No cuentas con permisos para gestionar la matriz RBAC.</p>';
+        return;
+      }
+
+      if (!window.Vue) {
+        refs.rbacVueRoot.innerHTML = '<p class="muted-text">No se pudo cargar Vue para la matriz de permisos.</p>';
+        return;
+      }
+
+      const { createApp } = window.Vue;
+      createApp({
+        data() {
+          return {
+            loading: false,
+            error: '',
+            matrix: null,
+          };
+        },
+        computed: {
+          roles() {
+            return Array.isArray(this.matrix?.roles) ? this.matrix.roles : [];
+          },
+          users() {
+            return Array.isArray(this.matrix?.users) ? this.matrix.users : [];
+          },
+          permissions() {
+            return Array.isArray(this.matrix?.permissions) ? this.matrix.permissions : [];
+          },
+        },
+        methods: {
+          async load() {
+            this.loading = true;
+            this.error = '';
+
+            const response = await listPermisosMatrix();
+            const envelope = response.data || {};
+            this.loading = false;
+
+            if (!response.ok || envelope.status !== 'success') {
+              this.error = envelope.message || 'No fue posible cargar la matriz de permisos.';
+              this.matrix = null;
+              return;
+            }
+
+            this.matrix = envelope.data || null;
+          },
+          roleAllowed(roleId, action) {
+            const roleMap = this.matrix?.role_matrix?.[roleId] || {};
+            return Boolean(roleMap?.[action]);
+          },
+          userEffective(userId, action) {
+            const map = this.matrix?.effective_matrix?.[userId] || {};
+            return Boolean(map?.[action]);
+          },
+          async toggleRole(roleId, action, event) {
+            const enabled = Boolean(event?.target?.checked);
+            const response = await updatePermiso({
+              scope: 'role',
+              roleId,
+              action,
+              enabled,
+            });
+            const envelope = response.data || {};
+
+            if (!response.ok || envelope.status !== 'success') {
+              showToast('error', envelope.message || 'No fue posible actualizar permiso de rol.');
+              await this.load();
+              return;
+            }
+
+            showToast('success', 'Permiso por rol actualizado.');
+            await this.load();
+          },
+          async toggleUser(userId, action, event) {
+            const enabled = Boolean(event?.target?.checked);
+            const response = await updatePermiso({
+              scope: 'user',
+              userId,
+              action,
+              enabled,
+            });
+            const envelope = response.data || {};
+
+            if (!response.ok || envelope.status !== 'success') {
+              showToast('error', envelope.message || 'No fue posible actualizar permiso de usuario.');
+              await this.load();
+              return;
+            }
+
+            showToast('success', 'Permiso por usuario actualizado.');
+            await this.load();
+            await loadUsuarios();
+          },
+        },
+        mounted() {
+          this.load();
+        },
+        template: `
+          <div>
+            <p v-if="loading" class="muted-text">Cargando matriz...</p>
+            <p v-if="error" class="muted-text" style="color:#9b2d2d">{{ error }}</p>
+            <div v-if="matrix">
+              <h4 class="card-title" style="margin-top:0.2rem;">Permisos por rol</h4>
+              <div class="table-wrapper" style="margin-bottom:0.9rem;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Rol</th>
+                      <th v-for="perm in permissions" :key="'role-col-' + perm.action">{{ perm.action }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="role in roles" :key="'role-row-' + role.id">
+                      <td>{{ role.name }}</td>
+                      <td v-for="perm in permissions" :key="'role-cell-' + role.id + '-' + perm.action">
+                        <input
+                          type="checkbox"
+                          :checked="roleAllowed(role.id, perm.action)"
+                          @change="toggleRole(role.id, perm.action, $event)"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h4 class="card-title">Matriz Usuarios vs Permisos</h4>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Rol</th>
+                      <th v-for="perm in permissions" :key="'usr-col-' + perm.action">{{ perm.action }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="user in users" :key="'usr-row-' + user.id">
+                      <td>{{ user.name }}</td>
+                      <td>{{ user.role_name }}</td>
+                      <td v-for="perm in permissions" :key="'usr-cell-' + user.id + '-' + perm.action">
+                        <input
+                          type="checkbox"
+                          :checked="userEffective(user.id, perm.action)"
+                          @change="toggleUser(user.id, perm.action, $event)"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `,
+      }).mount(refs.rbacVueRoot);
+    };
+
     const clearDocForm = () => {
       refs.docForm.reset();
       refs.docEditId.value = '';
@@ -498,6 +770,24 @@
       showSection('documentos');
     };
 
+    const openCertAuthModal = (docId, action, title = 'Autorizar acción restringida') => {
+      refs.certAuthDocumentId.value = String(docId);
+      refs.certAuthAction.value = String(action);
+      refs.certAuthTitle.textContent = title;
+      refs.certAuthSubtitle.textContent = 'Carga tu certificado público (.cer) y tu llave privada (.key).';
+      refs.certAuthForm.reset();
+      refs.certAuthModal.classList.remove('hidden-section');
+      refs.certAuthModal.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeCertAuthModal = () => {
+      refs.certAuthForm.reset();
+      refs.certAuthModal.classList.add('hidden-section');
+      refs.certAuthModal.setAttribute('aria-hidden', 'true');
+      refs.certAuthDocumentId.value = '';
+      refs.certAuthAction.value = 'approve_document';
+    };
+
     const loadDocumentos = async () => {
       refs.docsTbody.innerHTML = '<tr class="skeleton-row"><td colspan="6"><span class="skeleton-block" style="width: 100%"></span></td></tr>';
 
@@ -505,7 +795,7 @@
       const envelope = response.data || {};
       if (!response.ok || envelope.status !== 'success') {
         state.documentos = [];
-        renderSummary({ total: 0, emitidos: 0, borradores: 0, revocados: 0 });
+        renderSummary({ total: 0, emitidos: 0, aprobados: 0, borradores: 0, revocados: 0 });
         renderDocumentRows();
         showToast('error', envelope.message || 'No fue posible cargar documentos.');
         return;
@@ -568,7 +858,7 @@
       refs.userRolePill.className = `role-pill ${roleClass(role)}`;
       refs.userName.textContent = state.user?.nombre || state.user?.email || 'Usuario autenticado';
 
-      if (!canManageUsers()) {
+      if (!canManageUsers() && !canManageRbac()) {
         refs.navUsuarios.classList.add('hidden-inline');
         refs.sectionUsuarios.classList.add('hidden-section');
       }
@@ -576,6 +866,10 @@
       if (!canViewBitacora()) {
         refs.navBitacora.classList.add('hidden-inline');
         refs.sectionBitacora.classList.add('hidden-section');
+      }
+
+      if (!canRunTestingMatrix()) {
+        refs.navTestingMatrix.classList.add('hidden-inline');
       }
 
       if (!canManageDocuments()) {
@@ -587,7 +881,7 @@
       button.addEventListener('click', (event) => {
         event.preventDefault();
         const next = button.dataset.section;
-        if (next === 'usuarios' && !canManageUsers()) return;
+        if (next === 'usuarios' && !canManageUsers() && !canManageRbac()) return;
         if (next === 'bitacora' && !canViewBitacora()) return;
         showSection(next);
       });
@@ -608,6 +902,51 @@
       state.filters.q = document.getElementById('filter-docs').value.trim();
       state.filters.estado = document.getElementById('filter-estado').value;
       await loadDocumentos();
+    });
+
+    refs.certAuthCancel.addEventListener('click', closeCertAuthModal);
+    refs.certAuthModal.addEventListener('click', (event) => {
+      if (event.target === refs.certAuthModal) {
+        closeCertAuthModal();
+      }
+    });
+
+    refs.certAuthForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const documentId = Number(refs.certAuthDocumentId.value || 0);
+      const action = String(refs.certAuthAction.value || 'approve_document');
+      const cerFile = refs.certFileInput.files?.[0] || null;
+      const keyFile = refs.keyFileInput.files?.[0] || null;
+      const keyPassword = refs.keyPasswordInput.value || '';
+
+      if (!documentId || !cerFile || !keyFile) {
+        showToast('error', 'Debes cargar .cer y .key para autorizar la acción.');
+        return;
+      }
+
+      setButtonBusy(refs.certAuthConfirm, true);
+      const response = await authorizeDocumentoAction({
+        documentId,
+        action,
+        cerFile,
+        keyFile,
+        keyPassword,
+      });
+      const envelope = response.data || {};
+      setButtonBusy(refs.certAuthConfirm, false, 'Autorizar');
+
+      if (!response.ok || envelope.status !== 'success') {
+        showToast('error', envelope.message || 'No fue posible autorizar la acción con certificados.');
+        return;
+      }
+
+      closeCertAuthModal();
+      showToast('success', envelope.message || 'Autorización criptográfica válida.');
+      await loadDocumentos();
+      if (canViewBitacora()) {
+        await loadBitacora();
+      }
     });
 
     refs.docCancelEdit.addEventListener('click', clearDocForm);
@@ -667,6 +1006,15 @@
 
       if (action === 'editar') {
         fillDocFormForEdit(doc);
+        return;
+      }
+
+      if (action === 'autorizar') {
+        const authAction = String(target.dataset.authAction || 'approve_document');
+        const title = authAction === 'approve_document'
+          ? `Aprobar ${doc.folio} con .cer/.key`
+          : `Autorizar ${doc.folio} con .cer/.key`;
+        openCertAuthModal(id, authAction, title);
         return;
       }
 
@@ -732,33 +1080,118 @@
 
       refs.userForm.reset();
       showToast('success', envelope.message || 'Usuario registrado.');
+
+      const keyDelivery = envelope.data?.user?.key_delivery || envelope.data?.key_delivery;
+      if (keyDelivery?.download_token) {
+        const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
+        window.prompt(
+          'Token one-time generado. Comparte este enlace seguro con la persona usuaria (se invalida al descargar o en 24h):',
+          oneTimeUrl
+        );
+      }
+
       await loadUsuarios();
       await loadBitacora();
     });
 
     refs.usersTbody.addEventListener('click', async (event) => {
-      const target = event.target.closest('button[data-user-action="desactivar"]');
+      const target = event.target.closest('button[data-user-action]');
       if (!target) return;
 
-      const id = Number(target.dataset.id);
+      const action = String(target.dataset.userAction || '');
+      const id = Number(target.dataset.id || 0);
       if (!id) return;
 
-      const confirmed = window.confirm('¿Deseas desactivar este usuario?');
-      if (!confirmed) return;
+      if (action === 'desactivar') {
+        const confirmed = window.confirm('¿Deseas desactivar este usuario?');
+        if (!confirmed) return;
 
-      setButtonBusy(target, true);
-      const response = await desactivarUsuario(id);
-      const envelope = response.data || {};
-      setButtonBusy(target, false, 'Desactivar');
+        setButtonBusy(target, true);
+        const response = await desactivarUsuario(id);
+        const envelope = response.data || {};
+        setButtonBusy(target, false, 'Desactivar');
 
-      if (!response.ok || envelope.status !== 'success') {
-        showToast('error', envelope.message || 'No fue posible desactivar el usuario.');
+        if (!response.ok || envelope.status !== 'success') {
+          showToast('error', envelope.message || 'No fue posible desactivar el usuario.');
+          return;
+        }
+
+        showToast('success', envelope.message || 'Usuario desactivado.');
+        await loadUsuarios();
+        if (canViewBitacora()) {
+          await loadBitacora();
+        }
         return;
       }
 
-      showToast('success', envelope.message || 'Usuario desactivado.');
-      await loadUsuarios();
-      await loadBitacora();
+      if (action === 'cambiar-rol') {
+        const rolActual = String(target.dataset.rol || ROLE_VOLUNTARIO).toLowerCase();
+        const validRoles = [ROLE_VOLUNTARIO, ROLE_OPERATIVO, ROLE_COORDINADOR, ROLE_ADMIN];
+        const promptValue = window.prompt(
+          `Rol actual: ${roleLabel(rolActual)}\n\nNuevo rol (admin/coordinador/operativo/voluntario):`,
+          rolActual
+        );
+
+        if (!promptValue) return;
+        const nuevoRol = String(promptValue).trim().toLowerCase();
+        if (!validRoles.includes(nuevoRol)) {
+          showToast('error', 'Rol invalido.');
+          return;
+        }
+
+        setButtonBusy(target, true);
+        const response = await cambiarRolUsuario(id, nuevoRol);
+        const envelope = response.data || {};
+        setButtonBusy(target, false, 'Cambiar rol');
+
+        if (!response.ok || envelope.status !== 'success') {
+          showToast('error', envelope.message || 'No fue posible cambiar el rol.');
+          return;
+        }
+
+        const keyDelivery = envelope.data?.key_delivery;
+        if (keyDelivery?.download_token) {
+          const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
+          window.prompt('Se generó un nuevo token one-time para llaves:', oneTimeUrl);
+        }
+
+        showToast('success', envelope.message || 'Rol actualizado.');
+        await loadUsuarios();
+        if (canViewBitacora()) {
+          await loadBitacora();
+        }
+        return;
+      }
+
+      if (action === 'regenerar-cert') {
+        const reason = window.prompt(
+          'Motivo de regeneración/revocación del certificado:',
+          'Reposicion de llave privada extraviada.'
+        );
+        if (reason === null) return;
+
+        setButtonBusy(target, true);
+        const response = await regenerarCertificadoUsuario(id, reason || 'Regeneracion administrativa.');
+        const envelope = response.data || {};
+        setButtonBusy(target, false, 'Regenerar cert');
+
+        if (!response.ok || envelope.status !== 'success') {
+          showToast('error', envelope.message || 'No fue posible regenerar certificado.');
+          return;
+        }
+
+        const keyDelivery = envelope.data?.key_delivery;
+        if (keyDelivery?.download_token) {
+          const oneTimeUrl = buildOneTimeDownloadUrl(keyDelivery.download_token);
+          window.prompt('Nuevo enlace one-time para descarga de llaves:', oneTimeUrl);
+        }
+
+        showToast('success', envelope.message || 'Certificado regenerado correctamente.');
+        await loadUsuarios();
+        if (canViewBitacora()) {
+          await loadBitacora();
+        }
+      }
     });
 
     const sessionResponse = await fetchSession();
@@ -776,6 +1209,7 @@
     applyRoleView();
     showSection('overview');
     clearDocForm();
+    mountRbacVueApp();
 
     await loadDocumentos();
     if (canManageUsers()) {

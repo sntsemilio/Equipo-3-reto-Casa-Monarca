@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/rbac.php';
+require_once __DIR__ . '/../modules/user_certificates.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -37,9 +38,19 @@ $user = [
     'email' => (string) ($_SESSION['user_email'] ?? ''),
     'rol_id' => isset($_SESSION['rol_id']) ? (int) $_SESSION['rol_id'] : null,
     'role_name' => Rbac::userRole(),
+    'permissions' => Rbac::userPermissions(),
 ];
+
+$pendingKeyDownload = null;
+$uid = Rbac::userId();
+if ($uid !== null && $uid > 0) {
+    $pendingKeyDownload = getLatestUserPendingToken($uid);
+}
 
 echo json_encode([
     'status' => 'success',
-    'data' => ['user' => $user],
+    'data' => [
+        'user' => $user,
+        'pending_key_download' => $pendingKeyDownload,
+    ],
 ], JSON_UNESCAPED_UNICODE);

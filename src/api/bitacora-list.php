@@ -22,10 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 Rbac::requireAuthJson();
-Rbac::requireRoleJson([
-    Rbac::ROLE_ADMINISTRADOR,
-    Rbac::ROLE_EMISOR,
-]);
+Rbac::requirePermissionJson('view_audit_log');
 
 try {
     $limite = isset($_GET['limit']) ? (int) $_GET['limit'] : 200;

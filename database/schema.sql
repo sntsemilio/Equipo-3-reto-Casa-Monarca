@@ -1,24 +1,112 @@
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS roles (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
     nombre VARCHAR(50) NOT NULL UNIQUE,
-    descripcion VARCHAR(255) NULL,
+    description VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS permissions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(150) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
+    action VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id INT UNSIGNED NOT NULL,
+    permission_id INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_role_permissions_role
+        FOREIGN KEY (role_id) REFERENCES roles(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_role_permissions_permission
+        FOREIGN KEY (permission_id) REFERENCES permissions(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    rol_id INT UNSIGNED NOT NULL,
-    activo TINYINT(1) NOT NULL DEFAULT 1,
-    ultimo_login TIMESTAMP NULL DEFAULT NULL,
+    role_id INT UNSIGNED NOT NULL,
+    public_cert_pem LONGTEXT NULL,
+    public_cert_sha256 CHAR(64) NULL,
+    public_cert_serial VARCHAR(128) NULL,
+    cert_status ENUM('none', 'active', 'revoked') NOT NULL DEFAULT 'none',
+    cert_issued_at DATETIME NULL,
+    cert_revoked_at DATETIME NULL,
+    cert_revoked_reason VARCHAR(255) NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    last_login_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_usuarios_roles
-        FOREIGN KEY (rol_id) REFERENCES roles(id)
+    INDEX idx_users_role_id (role_id),
+    INDEX idx_users_is_active (is_active),
+    CONSTRAINT fk_users_roles
+        FOREIGN KEY (role_id) REFERENCES roles(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS user_permissions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    permission_id INT UNSIGNED NOT NULL,
+    is_allowed TINYINT(1) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_permissions (user_id, permission_id),
+    CONSTRAINT fk_user_permissions_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_permissions_permission
+        FOREIGN KEY (permission_id) REFERENCES permissions(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS certificate_download_tokens (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    zip_path VARCHAR(500) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    consumed_ip VARCHAR(45) NULL,
+    key_destroyed_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_cert_tokens_user_id (user_id),
+    INDEX idx_cert_tokens_expires_at (expires_at),
+    CONSTRAINT fk_cert_tokens_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS certificate_revocations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    serial_number VARCHAR(128) NULL,
+    reason VARCHAR(255) NULL,
+    revoked_by INT UNSIGNED NULL,
+    revoked_at DATETIME NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cert_revocations_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_cert_revocations_revoked_by
+        FOREIGN KEY (revoked_by) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS documentos (
@@ -32,8 +120,11 @@ CREATE TABLE IF NOT EXISTS documentos (
     firma_base64 LONGTEXT NULL,
     algoritmo_firma VARCHAR(50) NULL,
     qr_token CHAR(64) NOT NULL UNIQUE,
-    estado ENUM('borrador', 'emitido', 'revocado') NOT NULL DEFAULT 'borrador',
+    estado ENUM('borrador', 'aprobado', 'emitido', 'revocado') NOT NULL DEFAULT 'borrador',
     firmado TINYINT(1) NOT NULL DEFAULT 0,
+    autorizado_por INT UNSIGNED NULL,
+    autorizado_at DATETIME NULL,
+    autorizacion_evidencia_sha256 CHAR(64) NULL,
     creado_por INT UNSIGNED NULL,
     emitido_por INT UNSIGNED NULL,
     revocado_por INT UNSIGNED NULL,
@@ -42,15 +133,19 @@ CREATE TABLE IF NOT EXISTS documentos (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_documentos_creado_por
-        FOREIGN KEY (creado_por) REFERENCES usuarios(id)
+        FOREIGN KEY (creado_por) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL,
+    CONSTRAINT fk_documentos_autorizado_por
+        FOREIGN KEY (autorizado_por) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL,
     CONSTRAINT fk_documentos_emitido_por
-        FOREIGN KEY (emitido_por) REFERENCES usuarios(id)
+        FOREIGN KEY (emitido_por) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL,
     CONSTRAINT fk_documentos_revocado_por
-        FOREIGN KEY (revocado_por) REFERENCES usuarios(id)
+        FOREIGN KEY (revocado_por) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
 );
@@ -71,7 +166,7 @@ CREATE TABLE IF NOT EXISTS bitacora (
     INDEX idx_bitacora_modulo (modulo),
     INDEX idx_bitacora_created_at (created_at),
     CONSTRAINT fk_bitacora_usuarios
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        FOREIGN KEY (usuario_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL,
     CONSTRAINT fk_bitacora_documentos
@@ -80,40 +175,157 @@ CREATE TABLE IF NOT EXISTS bitacora (
         ON DELETE SET NULL
 );
 
-INSERT INTO roles (id, nombre, descripcion)
-VALUES
-    (1, 'administrador', 'Control total del gestor'),
-    (2, 'emisor', 'Puede crear, emitir y revocar documentos'),
-    (3, 'consultor', 'Acceso de lectura y consulta de trazabilidad'),
-    (4, 'supervisor', 'Puede emitir, revocar y revisar documentos, sin gestionar usuarios'),
-    (5, 'verificador', 'Solo puede verificar la autenticidad de documentos emitidos')
-ON DUPLICATE KEY UPDATE
-    descripcion = VALUES(descripcion);
+CREATE OR REPLACE VIEW usuarios AS
+SELECT
+    id,
+    name AS nombre,
+    email,
+    password_hash,
+    role_id AS rol_id,
+    is_active AS activo,
+    last_login_at AS ultimo_login,
+    created_at,
+    updated_at,
+    public_cert_pem,
+    public_cert_sha256,
+    public_cert_serial,
+    cert_status,
+    cert_issued_at,
+    cert_revoked_at,
+    cert_revoked_reason
+FROM users;
 
-INSERT INTO usuarios (nombre, email, password_hash, rol_id, activo)
+INSERT INTO roles (id, name, nombre, description)
 VALUES
-    (
-        'Administrador Principal',
-        'admin@casamonarca.org',
-        '$2y$10$TFZaRc7yHpdwy.2XmNQHf.twjn08SmiSJHrGkV.VdC3T2CqyHxmpK',
-        1,
-        1
-    ),
-    (
-        'Emisor Institucional',
-        'emisor@casamonarca.org',
-        '$2y$10$i//ZJGrg2hfO0aeuIWeca.oq7FdPd9doDZ11Ilq8RlskOA4I/iI2m',
-        2,
-        1
-    ),
-    (
-        'Consultor Externo',
-        'consultor@casamonarca.org',
-        '$2y$10$E8HlaCROGx3ROGZdDgOIjOG9QGSHaPcb.4pnRYMoG/9YkyxSG9A9q',
-        3,
-        1
-    )
+    (1, 'admin', 'admin', 'Control total de usuarios, permisos, llaves y revocaciones'),
+    (2, 'coordinador', 'coordinador', 'Autoriza y firma documentos restringidos'),
+    (3, 'operativo', 'operativo', 'Opera flujos documentales y firma segun permisos'),
+    (4, 'voluntario', 'voluntario', 'Acceso de consulta limitado al tablero')
 ON DUPLICATE KEY UPDATE
     nombre = VALUES(nombre),
-    rol_id = VALUES(rol_id),
-    activo = VALUES(activo);
+    description = VALUES(description);
+
+INSERT INTO permissions (action, description)
+VALUES
+    ('manage_users', 'CRUD de usuarios y cambios de rol'),
+    ('manage_role_permissions', 'Configurar permisos por rol'),
+    ('manage_user_permissions', 'Configurar permisos directos por usuario'),
+    ('view_dashboard', 'Visualizar panel principal'),
+    ('view_documents', 'Consultar documentos'),
+    ('approve_documents', 'Aprobar documento restringido con .cer/.key'),
+    ('sign_documents', 'Emitir y firmar documentos'),
+    ('revoke_documents', 'Revocar documentos emitidos'),
+    ('view_audit_log', 'Consultar bitacora de eventos'),
+    ('download_keys', 'Descargar paquete de llaves de un solo uso'),
+    ('run_testing_matrix', 'Acceder a matriz de comprobacion interna')
+ON DUPLICATE KEY UPDATE
+    description = VALUES(description);
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p
+    ON r.name = 'admin'
+ON DUPLICATE KEY UPDATE
+    created_at = created_at;
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.action IN (
+    'view_dashboard',
+    'view_documents',
+    'approve_documents',
+    'sign_documents',
+    'revoke_documents',
+    'view_audit_log',
+    'download_keys',
+    'run_testing_matrix'
+)
+WHERE r.name = 'coordinador'
+ON DUPLICATE KEY UPDATE
+    created_at = created_at;
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.action IN (
+    'view_dashboard',
+    'view_documents',
+    'approve_documents',
+    'sign_documents',
+    'run_testing_matrix'
+)
+WHERE r.name = 'operativo'
+ON DUPLICATE KEY UPDATE
+    created_at = created_at;
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+INNER JOIN permissions p ON p.action IN (
+    'view_dashboard',
+    'view_documents',
+    'run_testing_matrix'
+)
+WHERE r.name = 'voluntario'
+ON DUPLICATE KEY UPDATE
+    created_at = created_at;
+
+SET @seed_hash = '$2y$10$TFZaRc7yHpdwy.2XmNQHf.twjn08SmiSJHrGkV.VdC3T2CqyHxmpK';
+
+INSERT INTO users (name, email, password_hash, role_id, is_active)
+SELECT
+    'Admin Demo',
+    'admin@casamonarca.org',
+    @seed_hash,
+    r.id,
+    1
+FROM roles r
+WHERE r.name = 'admin'
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    role_id = VALUES(role_id),
+    is_active = VALUES(is_active);
+
+INSERT INTO users (name, email, password_hash, role_id, is_active)
+SELECT
+    'Coordinador Demo',
+    'coordinador@casamonarca.org',
+    @seed_hash,
+    r.id,
+    1
+FROM roles r
+WHERE r.name = 'coordinador'
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    role_id = VALUES(role_id),
+    is_active = VALUES(is_active);
+
+INSERT INTO users (name, email, password_hash, role_id, is_active)
+SELECT
+    'Operativo Demo',
+    'operativo@casamonarca.org',
+    @seed_hash,
+    r.id,
+    1
+FROM roles r
+WHERE r.name = 'operativo'
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    role_id = VALUES(role_id),
+    is_active = VALUES(is_active);
+
+INSERT INTO users (name, email, password_hash, role_id, is_active)
+SELECT
+    'Voluntario Demo',
+    'voluntario@casamonarca.org',
+    @seed_hash,
+    r.id,
+    1
+FROM roles r
+WHERE r.name = 'voluntario'
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    role_id = VALUES(role_id),
+    is_active = VALUES(is_active);

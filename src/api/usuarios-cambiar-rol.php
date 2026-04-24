@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../auth/rbac.php';
 require_once __DIR__ . '/../modules/usuarios.php';
-require_once __DIR__ . '/../modules/bitacora.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -24,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 Rbac::requireAuthJson();
-Rbac::requireRoleJson([Rbac::ROLE_ADMINISTRADOR]);
+Rbac::requirePermissionJson('manage_users');
 
 $payload = json_decode((string) file_get_contents('php://input'), true);
 if (!is_array($payload)) {
@@ -45,18 +43,6 @@ if ($targetId <= 0) {
     exit();
 }
 
-$rolesPermitidos = ['administrador', 'supervisor', 'emisor', 'verificador', 'consultor'];
-if (!in_array($nuevoRol, $rolesPermitidos, true)) {
-    http_response_code(400);
-    echo json_encode([
-        'status'  => 'error',
-        'data'    => [],
-        'message' => 'Rol no valido. Opciones: ' . implode(', ', $rolesPermitidos),
-        'mensaje' => 'Rol no valido.',
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
-}
-
 if ($targetId === (int) Rbac::userId()) {
     http_response_code(403);
     echo json_encode([
@@ -69,46 +55,22 @@ if ($targetId === (int) Rbac::userId()) {
 }
 
 try {
-    $rolId = obtenerRolIdPorNombre($nuevoRol);
-    if ($rolId === null) {
-        http_response_code(400);
-        echo json_encode([
-            'status'  => 'error',
-            'data'    => [],
-            'message' => 'Rol no encontrado en la base de datos.',
-            'mensaje' => 'Rol no encontrado en la base de datos.',
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    }
-
-    $pdo = getPdoConnection();
-    $stmt = $pdo->prepare('UPDATE usuarios SET rol_id = :rol_id, updated_at = NOW() WHERE id = :id');
-    $stmt->execute(['rol_id' => $rolId, 'id' => $targetId]);
-
-    if ($stmt->rowCount() === 0) {
-        http_response_code(404);
-        echo json_encode([
-            'status'  => 'error',
-            'data'    => [],
-            'message' => 'Usuario no encontrado o sin cambios.',
-            'mensaje' => 'Usuario no encontrado o sin cambios.',
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    }
-
-    registrarBitacora(
-        (int) Rbac::userId(),
-        'CAMBIO_ROL',
-        'USUARIOS',
-        null,
-        "Cambio de rol a '{$nuevoRol}' para usuario ID {$targetId}"
-    );
+    $resultado = cambiarRolUsuario($targetId, $nuevoRol, (int) Rbac::userId());
 
     echo json_encode([
         'status'  => 'success',
-        'data'    => ['id' => $targetId, 'rol' => $nuevoRol],
-        'message' => "Rol actualizado a {$nuevoRol} correctamente.",
-        'mensaje' => "Rol actualizado a {$nuevoRol} correctamente.",
+        'data'    => $resultado,
+        'message' => 'Rol actualizado correctamente.',
+        'mensaje' => 'Rol actualizado correctamente.',
+    ], JSON_UNESCAPED_UNICODE);
+} catch (InvalidArgumentException $e) {
+    $code = $e->getCode();
+    http_response_code(($code >= 400 && $code <= 499) ? $code : 400);
+    echo json_encode([
+        'status'  => 'error',
+        'data'    => [],
+        'message' => $e->getMessage(),
+        'mensaje' => $e->getMessage(),
     ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);

@@ -48,7 +48,7 @@ $payload = readRegisterPayload();
 
 try {
     $actorId = Rbac::userId();
-    $esAdmin = Rbac::userHasAnyRole([Rbac::ROLE_ADMINISTRADOR]);
+    $esAdmin = Rbac::userHasAnyRole([Rbac::ROLE_ADMIN]);
 
     $usuario = registrarUsuario($payload, $actorId, $esAdmin);
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../auth/rbac.php';
 require_once __DIR__ . '/../modules/usuarios.php';
+require_once __DIR__ . '/../modules/user_certificates.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -29,36 +30,43 @@ if (!is_array($payload)) {
     $payload = $_POST;
 }
 
-$targetId = isset($payload['id']) ? (int) $payload['id'] : 0;
-if ($targetId <= 0) {
+$userId = isset($payload['user_id']) ? (int) $payload['user_id'] : 0;
+$reason = trim((string) ($payload['reason'] ?? 'Regeneracion administrativa por reposicion de llave.'));
+
+if ($userId <= 0) {
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
         'data' => [],
-        'message' => 'ID de usuario invalido.',
-        'mensaje' => 'ID de usuario invalido.',
+        'message' => 'user_id invalido.',
+        'mensaje' => 'user_id invalido.',
     ], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
 try {
-    $ok = desactivarUsuario($targetId, (int) Rbac::userId());
-    if (!$ok) {
-        http_response_code(404);
-        echo json_encode([
-            'status' => 'error',
-            'data' => [],
-            'message' => 'Usuario no encontrado o sin cambios.',
-            'mensaje' => 'Usuario no encontrado o sin cambios.',
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+    $user = obtenerUsuarioPorId($userId);
+    if (!$user) {
+        throw new InvalidArgumentException('Usuario no encontrado.', 404);
     }
+
+    $roleName = normalizeRoleName((string) ($user['rol_nombre'] ?? ''));
+    if (!roleRequiresCertificate($roleName)) {
+        throw new InvalidArgumentException('El rol actual del usuario no requiere certificado.', 409);
+    }
+
+    revokeUserCertificate($userId, $reason, (int) Rbac::userId());
+    $keyDelivery = generateAndStoreUserCertificateBundle($userId, (int) Rbac::userId());
+    $updated = obtenerUsuarioPorId($userId);
 
     echo json_encode([
         'status' => 'success',
-        'data' => ['id' => $targetId],
-        'message' => 'Usuario desactivado correctamente.',
-        'mensaje' => 'Usuario desactivado correctamente.',
+        'data' => [
+            'user' => $updated,
+            'key_delivery' => $keyDelivery,
+        ],
+        'message' => 'Certificado regenerado correctamente.',
+        'mensaje' => 'Certificado regenerado correctamente.',
     ], JSON_UNESCAPED_UNICODE);
 } catch (InvalidArgumentException $e) {
     $code = $e->getCode();
@@ -74,7 +82,7 @@ try {
     echo json_encode([
         'status' => 'error',
         'data' => [],
-        'message' => 'No fue posible desactivar el usuario.',
-        'mensaje' => 'No fue posible desactivar el usuario.',
+        'message' => 'No fue posible regenerar el certificado del usuario.',
+        'mensaje' => 'No fue posible regenerar el certificado del usuario.',
     ], JSON_UNESCAPED_UNICODE);
 }

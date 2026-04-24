@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../auth/rbac.php';
-require_once __DIR__ . '/../modules/documentos.php';
+require_once __DIR__ . '/../modules/permissions.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -22,31 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 Rbac::requireAuthJson();
-Rbac::requirePermissionJson('view_documents');
+Rbac::requirePermissionJson(['manage_user_permissions', 'manage_role_permissions']);
 
 try {
-    $filtros = [
-        'estado' => isset($_GET['estado']) ? trim((string) $_GET['estado']) : null,
-        'q' => isset($_GET['q']) ? trim((string) $_GET['q']) : null,
-        'limit' => isset($_GET['limit']) ? (int) $_GET['limit'] : 200,
-        'offset' => isset($_GET['offset']) ? (int) $_GET['offset'] : 0,
-    ];
-
-    $resultado = listarDocumentos($filtros);
+    $matrix = buildPermissionsMatrix();
 
     echo json_encode([
         'status' => 'success',
-        'data' => [
-            'documentos' => $resultado['items'],
-            'resumen' => $resultado['resumen'],
-        ],
+        'data' => $matrix,
     ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
         'data' => [],
-        'message' => 'No fue posible obtener los documentos.',
-        'mensaje' => 'No fue posible obtener los documentos.',
+        'message' => 'No fue posible generar la matriz de permisos.',
+        'mensaje' => 'No fue posible generar la matriz de permisos.',
     ], JSON_UNESCAPED_UNICODE);
 }

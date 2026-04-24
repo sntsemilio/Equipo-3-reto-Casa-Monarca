@@ -74,7 +74,7 @@ function obtenerBitacora(int $limit = 100, ?int $documentoId = null): array
             u.email AS usuario_email,
             u.nombre AS usuario_nombre
         FROM bitacora b
-        LEFT JOIN usuarios u ON u.id = b.usuario_id
+        LEFT JOIN users u ON u.id = b.usuario_id
     ';
 
     if ($documentoId !== null && $documentoId > 0) {

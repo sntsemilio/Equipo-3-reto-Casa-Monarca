@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../modules/bitacora.php';
+require_once __DIR__ . '/../modules/permissions.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -45,14 +46,14 @@ function authenticate(string $email, string $password, $pdo = null): array
     $sql = '
         SELECT
             u.id,
-            u.nombre,
+            u.name AS nombre,
             u.email,
             u.password_hash,
-            u.rol_id,
-            u.activo,
-            r.nombre AS role_name
-        FROM usuarios u
-        INNER JOIN roles r ON r.id = u.rol_id
+            u.role_id AS rol_id,
+            u.is_active AS activo,
+            r.name AS role_name
+        FROM users u
+        INNER JOIN roles r ON r.id = u.role_id
         WHERE u.email = :email
         LIMIT 1
     ';
@@ -93,9 +94,10 @@ function authenticate(string $email, string $password, $pdo = null): array
     $_SESSION['rol_id'] = $rolId;
     $_SESSION['user_email'] = (string) ($usuario['email'] ?? '');
     $_SESSION['user_name'] = (string) ($usuario['nombre'] ?? '');
+    $_SESSION['permissions'] = array_keys(array_filter(getEffectivePermissionsForUser((int) $usuario['id'])));
 
     if ($pdo instanceof PDO) {
-        $up = $pdo->prepare('UPDATE usuarios SET ultimo_login = NOW(), updated_at = NOW() WHERE id = :id');
+        $up = $pdo->prepare('UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = :id');
         $up->execute(['id' => (int) $usuario['id']]);
     }
 

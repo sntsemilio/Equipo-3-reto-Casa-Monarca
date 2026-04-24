@@ -1,31 +1,22 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../modules/permissions.php';
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
 final class Rbac
 {
-    public const ROLE_ADMINISTRADOR = 'administrador';
-    public const ROLE_SUPERVISOR    = 'supervisor';
-    public const ROLE_EMISOR        = 'emisor';
-    public const ROLE_VERIFICADOR   = 'verificador';
-    public const ROLE_CONSULTOR     = 'consultor';
+    public const ROLE_ADMIN       = 'admin';
+    public const ROLE_COORDINADOR = 'coordinador';
+    public const ROLE_OPERATIVO   = 'operativo';
+    public const ROLE_VOLUNTARIO  = 'voluntario';
 
     private static function normalizeRole(string $role): string
     {
-        $normalized = strtolower(trim($role));
-
-        if ($normalized === 'admin') {
-            return self::ROLE_ADMINISTRADOR;
-        }
-
-        if ($normalized === 'operador') {
-            return self::ROLE_EMISOR;
-        }
-
-        return $normalized;
+        return normalizeRoleName($role);
     }
 
     public static function isAuthenticated(): bool
@@ -54,24 +45,9 @@ final class Rbac
 
         if (isset($_SESSION['rol_id'])) {
             $rolId = (int) $_SESSION['rol_id'];
-            if ($rolId === 1) {
-                return self::ROLE_ADMINISTRADOR;
-            }
-
-            if ($rolId === 2) {
-                return self::ROLE_EMISOR;
-            }
-
-            if ($rolId === 3) {
-                return self::ROLE_CONSULTOR;
-            }
-
-            if ($rolId === 4) {
-                return self::ROLE_SUPERVISOR;
-            }
-
-            if ($rolId === 5) {
-                return self::ROLE_VERIFICADOR;
+            $roleName = obtenerRolNombrePorId($rolId);
+            if (is_string($roleName) && $roleName !== '') {
+                return self::normalizeRole($roleName);
             }
         }
 
@@ -87,6 +63,72 @@ final class Rbac
 
         $normalized = array_map(static fn($role): string => self::normalizeRole((string) $role), $roles);
         return in_array($sessionRole, $normalized, true);
+    }
+
+    public static function refreshSessionPermissions(): void
+    {
+        $userId = self::userId();
+        if ($userId === null || $userId <= 0) {
+            $_SESSION['permissions'] = [];
+            return;
+        }
+
+        $effective = getEffectivePermissionsForUser($userId);
+        $actions = [];
+        foreach ($effective as $action => $allowed) {
+            if ($allowed === true) {
+                $actions[] = (string) $action;
+            }
+        }
+
+        sort($actions);
+        $_SESSION['permissions'] = $actions;
+    }
+
+    public static function userPermissions(): array
+    {
+        if (!self::isAuthenticated()) {
+            return [];
+        }
+
+        $cached = $_SESSION['permissions'] ?? null;
+        if (is_array($cached)) {
+            return array_values(array_map(static fn($v): string => strtolower((string) $v), $cached));
+        }
+
+        self::refreshSessionPermissions();
+        $reloaded = $_SESSION['permissions'] ?? [];
+        return is_array($reloaded)
+            ? array_values(array_map(static fn($v): string => strtolower((string) $v), $reloaded))
+            : [];
+    }
+
+    public static function userHasPermission(string $permission): bool
+    {
+        $normalized = strtolower(trim($permission));
+        if ($normalized === '') {
+            return false;
+        }
+
+        $permissions = self::userPermissions();
+        return in_array($normalized, $permissions, true);
+    }
+
+    public static function userHasAnyPermission(array $permissions): bool
+    {
+        $available = self::userPermissions();
+        if (empty($available)) {
+            return false;
+        }
+
+        foreach ($permissions as $permission) {
+            $normalized = strtolower(trim((string) $permission));
+            if ($normalized !== '' && in_array($normalized, $available, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function requireAuthJson(): void
@@ -109,6 +151,23 @@ final class Rbac
         self::sendJsonError(403, 'No cuentas con permisos para esta operacion.');
     }
 
+    public static function requirePermissionJson($permission): void
+    {
+        self::requireAuthJson();
+
+        if (is_array($permission)) {
+            if (self::userHasAnyPermission($permission)) {
+                return;
+            }
+        } else {
+            if (self::userHasPermission((string) $permission)) {
+                return;
+            }
+        }
+
+        self::sendJsonError(403, 'No cuentas con permisos para esta operacion.');
+    }
+
     public static function sendJsonError(int $code, string $message): void
     {
         http_response_code($code);
@@ -126,23 +185,7 @@ final class Rbac
 function verificarPermiso($rol_requerido): void
 {
     $roles = is_array($rol_requerido) ? $rol_requerido : [$rol_requerido];
-    $normalized = array_map(static function ($role): string {
-        $value = strtolower(trim((string) $role));
-
-        if ($value === '1') {
-            return Rbac::ROLE_ADMINISTRADOR;
-        }
-
-        if ($value === '2') {
-            return Rbac::ROLE_EMISOR;
-        }
-
-        if ($value === '3') {
-            return Rbac::ROLE_CONSULTOR;
-        }
-
-        return $value;
-    }, $roles);
+    $normalized = array_map(static fn($role): string => normalizeRoleName((string) $role), $roles);
 
     if (!Rbac::userHasAnyRole($normalized)) {
         header('HTTP/1.1 403 Forbidden');

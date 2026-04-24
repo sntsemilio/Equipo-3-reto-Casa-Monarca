@@ -196,7 +196,7 @@ function listarDocumentosInterno(array $filtros): array
     $limit = isset($filtros['limit']) ? (int) $filtros['limit'] : 200;
     $offset = isset($filtros['offset']) ? (int) $filtros['offset'] : 0;
 
-    if (!in_array($estado, ['', 'borrador', 'emitido', 'revocado'], true)) {
+    if (!in_array($estado, ['', 'borrador', 'aprobado', 'emitido', 'revocado'], true)) {
         throw new InvalidArgumentException('Filtro de estado invalido.', 400);
     }
 
@@ -274,6 +274,7 @@ function obtenerResumenDocumentos(?string $estado = null, ?string $query = null)
         SELECT
             COUNT(*) AS total,
             SUM(CASE WHEN estado = "emitido" THEN 1 ELSE 0 END) AS emitidos,
+            SUM(CASE WHEN estado = "aprobado" THEN 1 ELSE 0 END) AS aprobados,
             SUM(CASE WHEN estado = "borrador" THEN 1 ELSE 0 END) AS borradores,
             SUM(CASE WHEN estado = "revocado" THEN 1 ELSE 0 END) AS revocados
         FROM documentos
@@ -305,9 +306,67 @@ function obtenerResumenDocumentos(?string $estado = null, ?string $query = null)
     return [
         'total' => (int) ($row['total'] ?? 0),
         'emitidos' => (int) ($row['emitidos'] ?? 0),
+        'aprobados' => (int) ($row['aprobados'] ?? 0),
         'borradores' => (int) ($row['borradores'] ?? 0),
         'revocados' => (int) ($row['revocados'] ?? 0),
     ];
+}
+
+function aprobarDocumento(int $id, ?int $usuarioId = null, string $evidenceHash = ''): array
+{
+    $actorId = (int) ($usuarioId ?? 0);
+    $actual = obtenerDocumentoPorId($id);
+    if (!$actual) {
+        throw new InvalidArgumentException('Documento no encontrado.', 404);
+    }
+
+    if ($actual['estado'] === 'revocado') {
+        throw new InvalidArgumentException('No es posible aprobar un documento revocado.', 409);
+    }
+
+    if ($actual['estado'] === 'emitido') {
+        return $actual;
+    }
+
+    if ($actual['estado'] === 'aprobado') {
+        return $actual;
+    }
+
+    $pdo = getPdoConnection();
+    $sql = '
+        UPDATE documentos
+        SET estado = "aprobado",
+            autorizado_por = :autorizado_por,
+            autorizado_at = NOW(),
+            autorizacion_evidencia_sha256 = :evidence_hash,
+            updated_at = NOW()
+        WHERE id = :id
+    ';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        'autorizado_por' => $actorId > 0 ? $actorId : null,
+        'evidence_hash' => trim($evidenceHash) !== '' ? trim($evidenceHash) : null,
+        'id' => $id,
+    ]);
+
+    $actualizado = obtenerDocumentoPorId($id);
+    if (!$actualizado) {
+        throw new RuntimeException('No fue posible recuperar el documento aprobado.', 500);
+    }
+
+    registrarBitacoraDocumento(
+        'APROBAR_DOCUMENTO',
+        $actorId > 0 ? $actorId : null,
+        $id,
+        'Documento aprobado para firma/restriccion.',
+        [
+            'folio' => $actualizado['folio'],
+            'evidence_hash' => trim($evidenceHash) !== '' ? trim($evidenceHash) : null,
+        ]
+    );
+
+    return $actualizado;
 }
 
 function crearDocumentoBorrador(array $datos, ?int $usuarioId = null): array

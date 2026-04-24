@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 Rbac::requireAuthJson();
-Rbac::requireRoleJson([Rbac::ROLE_ADMINISTRADOR]);
+Rbac::requirePermissionJson('manage_users');
 
 try {
     $usuarios = listarUsuarios();

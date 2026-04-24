@@ -22,10 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 Rbac::requireAuthJson();
-Rbac::requireRoleJson([
-    Rbac::ROLE_ADMINISTRADOR,
-    Rbac::ROLE_EMISOR,
-]);
+Rbac::requirePermissionJson('revoke_documents');
 
 $payload = json_decode((string) file_get_contents('php://input'), true);
 if (!is_array($payload)) {

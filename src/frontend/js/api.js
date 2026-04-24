@@ -18,9 +18,16 @@ const ENDPOINTS = {
   documentosDelete: ['/api/documentos-delete.php', '/src/api/documentos-delete.php'],
   documentosEmitir: ['/api/documentos-emitir.php', '/src/api/documentos-emitir.php'],
   documentosRevocar: ['/api/documentos-revocar.php', '/src/api/documentos-revocar.php'],
+  documentosAuthorize: ['/api/documentos-authorize.php', '/src/api/documentos-authorize.php'],
   bitacoraList: ['/api/bitacora-list.php', '/src/api/bitacora-list.php'],
   usuariosList: ['/api/usuarios-list.php', '/src/api/usuarios-list.php'],
   usuariosDesactivar: ['/api/usuarios-desactivar.php', '/src/api/usuarios-desactivar.php'],
+  usuariosCambiarRol: ['/api/usuarios-cambiar-rol.php', '/src/api/usuarios-cambiar-rol.php'],
+  usuariosRegenerarCert: ['/api/usuarios-regenerar-cert.php', '/src/api/usuarios-regenerar-cert.php'],
+  permisosMatrix: ['/api/permisos-matrix.php', '/src/api/permisos-matrix.php'],
+  permisosUpdate: ['/api/permisos-update.php', '/src/api/permisos-update.php'],
+  keysDownload: ['/api/keys-download.php', '/src/api/keys-download.php'],
+  devPermissionProbe: ['/api/dev-permission-probe.php', '/src/api/dev-permission-probe.php'],
 };
 
 const buildCandidatesWithQuery = (candidates, queryParams = {}) => {
@@ -127,6 +134,12 @@ const postJson = (candidates, body = {}) =>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+  });
+
+const postFormData = (candidates, formData) =>
+  requestCandidates(candidates, {
+    method: 'POST',
+    body: formData,
   });
 
 const setSessionUser = (user) => {
@@ -246,6 +259,71 @@ export const listUsuarios = async () => {
 
 export const desactivarUsuario = async (id) => {
   return postJson(ENDPOINTS.usuariosDesactivar, { id });
+};
+
+export const cambiarRolUsuario = async (id, rol) => {
+  return postJson(ENDPOINTS.usuariosCambiarRol, { id, rol });
+};
+
+export const regenerarCertificadoUsuario = async (userId, reason = '') => {
+  return postJson(ENDPOINTS.usuariosRegenerarCert, {
+    user_id: userId,
+    reason,
+  });
+};
+
+export const listPermisosMatrix = async () => {
+  return getJson(ENDPOINTS.permisosMatrix);
+};
+
+export const updatePermiso = async ({ scope, action, roleId, userId, enabled }) => {
+  const payload = {
+    scope,
+    action,
+    enabled: Boolean(enabled),
+  };
+
+  if (scope === 'role') {
+    payload.role_id = Number(roleId);
+  }
+
+  if (scope === 'user') {
+    payload.user_id = Number(userId);
+  }
+
+  return postJson(ENDPOINTS.permisosUpdate, payload);
+};
+
+export const authorizeDocumentoAction = async ({ documentId, action, cerFile, keyFile, keyPassword = '', revokeReason = '' }) => {
+  const formData = new FormData();
+  formData.append('document_id', String(documentId));
+  formData.append('action', String(action));
+  formData.append('cer_file', cerFile);
+  formData.append('key_file', keyFile);
+  if (keyPassword) {
+    formData.append('key_password', keyPassword);
+  }
+  if (revokeReason) {
+    formData.append('revoke_reason', revokeReason);
+  }
+
+  return postFormData(ENDPOINTS.documentosAuthorize, formData);
+};
+
+export const buildOneTimeDownloadUrl = (token) => {
+  if (!token) {
+    return '#';
+  }
+
+  const path = ENDPOINTS.keysDownload[0] || '/api/keys-download.php';
+  return `${BASE}${path}?token=${encodeURIComponent(String(token))}`;
+};
+
+export const probeUserPermission = async (userId, action) => {
+  return getJson(ENDPOINTS.devPermissionProbe, {
+    user_id: String(userId),
+    action: String(action),
+  });
 };
 
 export const consultarDocumentoPublico = async (identificador) => {
